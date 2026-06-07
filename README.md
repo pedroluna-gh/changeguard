@@ -3,8 +3,8 @@
 > **Stop risky production changes before they become incidents.**
 
 ChangeGuard is built from real-world SRE, cloud operations, ITSM, and change-governance experience in mission-critical 24/7 environments.
-
 It is designed for teams that need more production discipline than a simple checklist, but less overhead than a full enterprise ITSM platform.
+
 ChangeGuard is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
 It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
