@@ -108,12 +108,28 @@ runs:
         echo "ChangeGuard risk: $level ($score/100)"
 
         # Gate the job based on fail-on.
-        declare -A rank=( ["LOW"]=0 ["MEDIUM"]=1 ["HIGH"]=2 ["CRITICAL"]=3 )
-        declare -A threshold=( ["none"]=99 ["low"]=0 ["medium"]=1 ["high"]=2 ["critical"]=3 )
+        # Use a case statement (not associative arrays) so this works on
+        # macOS runners, which ship Bash 3.2 and lack "declare -A".
+        case "$level" in
+          LOW) lv=0 ;;
+          MEDIUM) lv=1 ;;
+          HIGH) lv=2 ;;
+          CRITICAL) lv=3 ;;
+          *) lv=0 ;;
+        esac
 
         fail_on=$(echo "$CG_FAIL_ON" | tr '[:upper:]' '[:lower:]')
-        th=${threshold[$fail_on]:-3}
-        lv=${rank[$level]:-0}
+        case "$fail_on" in
+          none) th=99 ;;
+          low) th=0 ;;
+          medium) th=1 ;;
+          high) th=2 ;;
+          critical) th=3 ;;
+          *)
+            echo "::warning::Unknown fail-on value '$CG_FAIL_ON'; defaulting to 'critical'."
+            th=3
+            ;;
+        esac
 
         if [ "$lv" -ge "$th" ]; then
           echo "::error::ChangeGuard risk level $level meets or exceeds fail-on threshold ($CG_FAIL_ON)."
