@@ -124,7 +124,7 @@ CRITICAL_RISK_SERVICES = {
             "monitoring_required": True,
             "approval_required": True,
             "dependencies": ["auth-service", "postgres", "kms"],
-            "business_impact": "Customers cannot be charged and revenue stops immediately",
+            "business_impact": "Customers cannot be charged and revenue stops immediately.",
         }
     ]
 }
