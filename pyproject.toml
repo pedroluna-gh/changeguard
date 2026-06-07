@@ -9,7 +9,27 @@ description = "Pre-deployment risk assessment for SRE, DevOps and Platform Engin
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-keywords = ["sre", "devops", "risk", "deployment", "ci", "terraform", "kubernetes"]
+authors = [
+    { name = "Pedro Jose Luna Salmon" },
+]
+keywords = [
+    "sre",
+    "devops",
+    "risk",
+    "deployment",
+    "ci",
+    "terraform",
+    "kubernetes",
+    "platform-engineering",
+    "change-management",
+    "production-readiness",
+    "incident-prevention",
+    "github-actions",
+    "rollback",
+    "observability",
+    "itil",
+    "cloud-operations",
+]
 dependencies = [
     "pyyaml",
 ]
@@ -17,6 +37,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/pedroluna-gh/preflightops"
 Repository = "https://github.com/pedroluna-gh/preflightops"
+Documentation = "https://github.com/pedroluna-gh/preflightops#readme"
 Issues = "https://github.com/pedroluna-gh/preflightops/issues"
 
 [project.optional-dependencies]
