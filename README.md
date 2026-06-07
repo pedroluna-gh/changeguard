@@ -263,9 +263,7 @@ PreflightOps is a **local, offline** tool: it makes no outbound network calls, s
 - Static HTML dashboard export
 - Policy-as-code approval workflows
 
-## Suggested GitHub topics
-
-When publishing, add topics like:
+## GitHub topics
 
 `sre` · `devops` · `platform-engineering` · `site-reliability-engineering` · `change-management` · `risk-assessment` · `production-readiness` · `rollback` · `observability` · `terraform` · `kubernetes` · `ci-cd` · `pre-deployment` · `streamlit` · `python`
 
