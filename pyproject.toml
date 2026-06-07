@@ -1,73 +1,72 @@
 [build-system]
-  requires = ["setuptools>=61"]
-  build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
-  [project]
-  name = "changeguard"
-  version = "0.1.0"
-  description = "Pre-deployment risk assessment for SRE, DevOps and Platform Engineering teams."
-  readme = "README.md"
-  requires-python = ">=3.10"
-  license = { text = "MIT" }
-  authors = [
-      { name = "pedroluna-gh" },
-  ]
-  keywords = [
-      "sre",
-      "devops",
-      "platform-engineering",
-      "site-reliability-engineering",
-      "change-management",
-      "incident-prevention",
-      "deployment-risk",
-      "production-readiness",
-      "risk-assessment",
-      "rollback",
-      "observability",
-      "terraform",
-      "kubernetes",
-      "ci-cd",
-      "itil",
-      "cloud-operations",
-  ]
-  classifiers = [
-      "Development Status :: 4 - Beta",
-      "Intended Audience :: Developers",
-      "Intended Audience :: System Administrators",
-      "License :: OSI Approved :: MIT License",
-      "Operating System :: OS Independent",
-      "Programming Language :: Python :: 3",
-      "Programming Language :: Python :: 3.10",
-      "Programming Language :: Python :: 3.11",
-      "Programming Language :: Python :: 3.12",
-      "Topic :: Software Development :: Quality Assurance",
-      "Topic :: System :: Systems Administration",
-  ]
-  dependencies = [
-      "pyyaml",
-  ]
+[project]
+name = "changeguard"
+version = "0.1.0"
+description = "Pre-deployment risk assessment for SRE, DevOps and Platform Engineering teams."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "pedroluna-gh" },
+]
+keywords = [
+    "sre",
+    "devops",
+    "platform-engineering",
+    "site-reliability-engineering",
+    "change-management",
+    "incident-prevention",
+    "deployment-risk",
+    "production-readiness",
+    "risk-assessment",
+    "rollback",
+    "observability",
+    "terraform",
+    "kubernetes",
+    "ci-cd",
+    "itil",
+    "cloud-operations",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "pyyaml",
+]
 
-  [project.urls]
-  Homepage = "https://github.com/pedroluna-gh/changeguard"
-  Repository = "https://github.com/pedroluna-gh/changeguard"
-  Issues = "https://github.com/pedroluna-gh/changeguard/issues"
-  Documentation = "https://github.com/pedroluna-gh/changeguard/tree/main/docs"
-  Changelog = "https://github.com/pedroluna-gh/changeguard/blob/main/CHANGELOG.md"
+[project.urls]
+Homepage = "https://github.com/pedroluna-gh/changeguard"
+Repository = "https://github.com/pedroluna-gh/changeguard"
+Issues = "https://github.com/pedroluna-gh/changeguard/issues"
+Documentation = "https://github.com/pedroluna-gh/changeguard/tree/main/docs"
+Changelog = "https://github.com/pedroluna-gh/changeguard/blob/main/CHANGELOG.md"
 
-  [project.optional-dependencies]
-  # Extras needed only to run the Streamlit web UI (`streamlit run app.py`).
-  app = [
-      "streamlit",
-      "pandas",
-  ]
-  # Extras needed only to run the automated test suite (`pytest`).
-  test = [
-      "pytest",
-  ]
+[project.optional-dependencies]
+# Extras needed only to run the Streamlit web UI (`streamlit run app.py`).
+app = [
+    "streamlit",
+    "pandas",
+]
+# Extras needed only to run the automated test suite (`pytest`).
+test = [
+    "pytest",
+]
 
-  [project.scripts]
-  changeguard = "changeguard.cli:main"
+[project.scripts]
+changeguard = "changeguard.cli:main"
 
-  [tool.setuptools]
-  packages = ["changeguard"]
-  
+[tool.setuptools]
+packages = ["changeguard"]
