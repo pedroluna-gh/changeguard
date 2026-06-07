@@ -9,7 +9,19 @@ description = "Pre-deployment risk assessment for SRE, DevOps and Platform Engin
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-keywords = ["sre", "devops", "risk", "deployment", "ci", "terraform", "kubernetes"]
+keywords = [
+    "sre",
+    "devops",
+    "platform-engineering",
+    "change-management",
+    "incident-prevention",
+    "deployment-risk",
+    "terraform",
+    "kubernetes",
+    "production-readiness",
+    "itil",
+    "cloud-operations"
+]
 dependencies = [
     "pyyaml",
 ]
