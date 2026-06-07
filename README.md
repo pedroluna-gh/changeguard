@@ -201,6 +201,8 @@ PreflightOps sums the points from every triggered rule and scanner finding, capp
 
 Findings are grouped by source — **Service Controls**, **Change Type**, **Terraform**, and **Kubernetes** — so you can see exactly where the risk comes from.
 
+> **Note:** Final risk score is capped at 100. Breakdown values show raw contributing points before the cap is applied.
+
 ## Project structure
 
 ```
