@@ -141,6 +141,89 @@ jobs:
 
 ---
 
+## Using the composite action
+
+Instead of the hand-rolled workflow above, you can call the bundled composite
+action directly with `uses:`. It sets up Python, installs PreflightOps, runs the
+assessment, and gates the job on `fail-on`.
+
+### Inputs
+
+| Input | Required | Default | Description |
+| --- | --- | --- | --- |
+| `services` | yes | — | Path to the service catalog YAML file. |
+| `change` | yes | — | Path to the change request YAML file. |
+| `terraform` | no | `""` | Optional Terraform plan/diff text file. |
+| `k8s` | no | `""` | Optional Kubernetes manifest YAML file. |
+| `output` | no | `preflightops-report.md` | Path to write the Markdown report. |
+| `json-output` | no | `preflightops-report.json` | Path to write the JSON report. |
+| `ticket-output` | no | `""` | Optional path to write a ServiceNow/Jira-ready change ticket summary. |
+| `ticket-template` | no | `""` | Optional path to a YAML or JSON ticket template. |
+| `servicenow` | no | `""` | Optional ServiceNow instance URL for opt-in live ticket push. |
+| `jira` | no | `""` | Optional Jira base URL for opt-in live ticket push. |
+| `assume-yes` | no | `"false"` | Skip confirmation prompts for an explicitly requested live push. |
+| `fail-on` | no | `critical` | Minimum risk level that fails the action: `none`, `low`, `medium`, `high`, `critical`. |
+| `python-version` | no | `3.11` | Python version to set up. |
+
+### Outputs
+
+`risk-level`, `risk-score`, `report-path`, `json-report-path`, and `ticket-path`
+(the path of the generated ticket summary, empty when `ticket-output` was not
+set).
+
+### Safe example (offline ticket summary)
+
+This stays fully offline — it generates the report and a copy/paste-ready change
+ticket summary, with no outbound calls:
+
+```yaml
+- uses: pedroluna-gh/preflightops@v0.1.0
+  with:
+    services: services.yaml
+    change: change.yaml
+    terraform: tfplan.txt
+    k8s: k8s.yaml
+    output: preflightops-report.md
+    json-output: preflightops-report.json
+    ticket-output: preflightops-ticket.md
+    fail-on: critical
+```
+
+### Advanced example (opt-in live ServiceNow / Jira push)
+
+Live push is **opt-in** and should only be enabled in trusted workflows.
+Pass the non-secret instance/base URL as an input, and provide credentials as
+GitHub Actions secrets through the job's `env` block — never inline. Set
+`assume-yes: true` because a CI runner has no interactive terminal to confirm the
+push:
+
+```yaml
+jobs:
+  risk-review:
+    runs-on: ubuntu-latest
+    env:
+      SERVICENOW_USER: ${{ secrets.SERVICENOW_USER }}
+      SERVICENOW_PASSWORD: ${{ secrets.SERVICENOW_PASSWORD }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pedroluna-gh/preflightops@v0.1.0
+        with:
+          services: services.yaml
+          change: change.yaml
+          ticket-output: preflightops-ticket.md
+          servicenow: https://example.service-now.com
+          jira: https://example.atlassian.net
+          assume-yes: true
+```
+
+Omit `servicenow` / `jira` (or leave them blank) to keep the integrations
+disabled — no credentials are needed and no network call is made.
+
+---
+
 ## Recommended repository files
 
 Your application repository should include:

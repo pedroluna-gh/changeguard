@@ -131,7 +131,7 @@ def main(argv=None) -> int:
         metavar="BASE_URL",
         help=(
             "Opt-in: create/update a Jira issue from the ticket summary. Pass the "
-            "base URL (e.g. https://your-org.atlassian.net). Credentials come from "
+            "base URL (e.g. https://example.atlassian.net). Credentials come from "
             "the JIRA_EMAIL / JIRA_API_TOKEN / JIRA_PROJECT_KEY environment "
             "variables only."
         ),

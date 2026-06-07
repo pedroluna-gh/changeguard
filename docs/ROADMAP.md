@@ -16,6 +16,14 @@ suggest or upvote an item.
 - Streamlit web app and `preflightops` CLI.
 - Composite GitHub Action and PR risk-gate workflow.
 
+## v0.1.x — Change-ticket summaries & opt-in integrations (current)
+
+- Copy/paste-ready ServiceNow/Jira change ticket summary (`--ticket-output`).
+- Configurable ticket templates (`--ticket-template`).
+- Optional, opt-in ServiceNow and Jira live push (`--servicenow` / `--jira`),
+  available from the CLI, GitHub Action, and web app. Credentials are read from
+  the environment only, and nothing is sent unless explicitly enabled.
+
 ## v0.2 — Real Terraform plan parsing
 
 - Parse `terraform show -json` plan output instead of keyword matching.
@@ -42,7 +50,11 @@ suggest or upvote an item.
 
 ## v0.6 — Ecosystem integrations (optional, opt-in)
 
-- ServiceNow / Jira change-record linking.
+- Basic ServiceNow / Jira change-record push — **available now** (see v0.1.x).
+- Stronger ServiceNow / Jira API hardening (retries, error handling, field and
+  richer workflow/state mapping).
+- Audit-trail metadata on generated change records.
+- Expanded, shareable ticket-template library.
 - PagerDuty / Opsgenie incident-history context.
 - Datadog / Grafana dashboard link validation.
 

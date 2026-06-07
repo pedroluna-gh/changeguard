@@ -148,6 +148,22 @@ env:
 
 Optional inputs are skipped automatically when the file is absent. The workflow needs `pull-requests: write` permission to post the comment (already declared in the example file).
 
+You can also call the bundled composite action directly with `uses:`. It sets up Python, installs PreflightOps, runs the assessment, and gates the job on `fail-on`. Add `ticket-output` to also generate a copy/paste-ready change summary — this stays fully offline:
+
+```yaml
+- uses: pedroluna-gh/preflightops@v0.1.0
+  with:
+    services: services.yaml
+    change: change.yaml
+    terraform: tfplan.txt
+    k8s: k8s.yaml
+    output: preflightops-report.md
+    ticket-output: preflightops-ticket.md
+    fail-on: critical
+```
+
+Live ServiceNow/Jira push is optional and should only be enabled in trusted workflows, with credentials provided through GitHub Actions secrets — see [Opt-in: push from the GitHub Action](#opt-in-push-from-the-github-action) and the [GitHub Action guide](docs/GITHUB_ACTION.md).
+
 ## ServiceNow / Jira-ready change summaries
 
 PreflightOps can generate a copy/paste-friendly Markdown change summary for ServiceNow, Jira, CAB reviews, or internal approval workflows.
@@ -208,7 +224,7 @@ preflightops \
   --change examples/change-critical-risk.yaml \
   --output report.md \
   --servicenow https://dev12345.service-now.com \
-  --jira https://your-org.atlassian.net
+  --jira https://example.atlassian.net
 ```
 
 This **creates or updates** a ServiceNow `change_request` and/or a Jira issue
@@ -233,37 +249,54 @@ the offline report paths.
 
 ### Opt-in: push from the GitHub Action
 
-The bundled [PR risk gate](#github-action-pr-risk-gate) can run the same opt-in
-push automatically, so the ServiceNow `change_request` and/or Jira issue is
-created or updated as part of the pull-request check.
+The composite action can run the same opt-in push, so the ServiceNow
+`change_request` and/or Jira issue is created or updated as part of the
+pull-request check.
 
 It stays **off by default**: the Action behaves exactly as it does today until
-you set the non-secret instance/base URL in the workflow's `env` block. Set
-either or both:
+you pass a non-secret `servicenow` and/or `jira` URL as an action input. Because
+a CI runner has no interactive terminal, set `assume-yes: true` to waive the
+confirmation prompt. Provide the credentials as **GitHub repository secrets**
+(Settings → Secrets and variables → Actions) through the job's `env` block — never
+on the command line:
 
 ```yaml
-env:
-  PREFLIGHTOPS_SERVICENOW: https://dev12345.service-now.com  # enables --servicenow
-  PREFLIGHTOPS_JIRA: https://your-org.atlassian.net          # enables --jira
+jobs:
+  risk-review:
+    runs-on: ubuntu-latest
+    env:
+      SERVICENOW_USER: ${{ secrets.SERVICENOW_USER }}
+      SERVICENOW_PASSWORD: ${{ secrets.SERVICENOW_PASSWORD }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pedroluna-gh/preflightops@v0.1.0
+        with:
+          services: services.yaml
+          change: change.yaml
+          ticket-output: preflightops-ticket.md
+          servicenow: https://dev12345.service-now.com  # enables --servicenow
+          jira: https://example.atlassian.net           # enables --jira
+          assume-yes: true
 ```
 
-Then add the credentials as **GitHub repository secrets** (Settings → Secrets and
-variables → Actions). The workflow passes them to the CLI through the environment
-only — never on the command line:
+The secrets above map to the environment variables the CLI reads:
 
 | Secret | Used by | Required |
 | --- | --- | --- |
-| `SERVICENOW_USER` | ServiceNow | when `PREFLIGHTOPS_SERVICENOW` is set |
-| `SERVICENOW_PASSWORD` | ServiceNow | when `PREFLIGHTOPS_SERVICENOW` is set |
-| `JIRA_EMAIL` | Jira | when `PREFLIGHTOPS_JIRA` is set |
-| `JIRA_API_TOKEN` | Jira | when `PREFLIGHTOPS_JIRA` is set |
-| `JIRA_PROJECT_KEY` | Jira | when `PREFLIGHTOPS_JIRA` is set |
+| `SERVICENOW_USER` | ServiceNow | when the `servicenow` input is set |
+| `SERVICENOW_PASSWORD` | ServiceNow | when the `servicenow` input is set |
+| `JIRA_EMAIL` | Jira | when the `jira` input is set |
+| `JIRA_API_TOKEN` | Jira | when the `jira` input is set |
+| `JIRA_PROJECT_KEY` | Jira | when the `jira` input is set |
 | `JIRA_ISSUE_TYPE` | Jira | optional (defaults to `Task`) |
 
-Leave the URLs blank to keep both integrations disabled — no secrets are needed
-and no network call is made. Because re-runs are matched by a deterministic
-correlation id, repeated pushes for the same change update the existing record
-instead of creating duplicates.
+Omit `servicenow` / `jira` (or leave them blank) to keep both integrations
+disabled — no secrets are needed and no network call is made. Because re-runs are
+matched by a deterministic correlation id, repeated pushes for the same change
+update the existing record instead of creating duplicates.
 
 ### Opt-in: send from the web app
 

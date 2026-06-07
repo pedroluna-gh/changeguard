@@ -235,7 +235,7 @@ def push_to_jira(base_url, result, change_doc=None, ticket_markdown=None, env=No
     Parameters
     ----------
     base_url : str
-        The Jira base URL, e.g. ``https://your-org.atlassian.net``. Not a secret.
+        The Jira base URL, e.g. ``https://example.atlassian.net``. Not a secret.
     result, change_doc : dict
         The risk result and parsed change document (payload source).
     ticket_markdown : str, optional
@@ -252,7 +252,7 @@ def push_to_jira(base_url, result, change_doc=None, ticket_markdown=None, env=No
     base_url = (base_url or "").rstrip("/")
     if not base_url:
         raise IntegrationError(
-            "Jira base URL is required (e.g. https://your-org.atlassian.net)."
+            "Jira base URL is required (e.g. https://example.atlassian.net)."
         )
 
     email = env.get(JIRA_EMAIL_ENV)
