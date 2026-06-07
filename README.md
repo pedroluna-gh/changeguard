@@ -4,14 +4,6 @@
 
 PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
-It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
-
-[![CI](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
-
-![PreflightOps web app](docs/screenshots/app-overview.png)
-
 ## Try it in a pull request
 
 ```yaml
@@ -25,6 +17,13 @@ It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitH
 ```
 
 ---
+It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
+
+[![CI](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
+
+![PreflightOps web app](docs/screenshots/app-overview.png)
 
 ## The problem
 
