@@ -1,8 +1,9 @@
 # Screenshots
 
-The images under `docs/screenshots/` are referenced from the README. The files
-currently committed are **placeholders** — please replace them with real captures
-of the running app so the README shows the actual product.
+The images under `docs/screenshots/` are referenced from the README. They are
+real captures of the running ChangeGuard app (`app-overview.png`, `risk-results.png`)
+and a faithful mock of the GitHub PR comment (`github-pr-comment.png`), all using
+the bundled placeholder example data. The steps below explain how to regenerate them.
 
 | File | Where it's used | What to capture |
 |---|---|---|
