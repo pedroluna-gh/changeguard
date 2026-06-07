@@ -1,11 +1,16 @@
-change:
-  id: CHG-300
-  title: Migrate payments-core to new IAM roles and database
-  service: payments-core
-  environment: production
-  change_type: infrastructure
-  requested_by: pedro
-  description: Apply Terraform changes for new IAM roles and replace the payments database instance
-  rollback_plan: ""
-  monitoring_plan: {}
-  validation_plan: []
+services:
+  - name: reporting-api
+    description: Generates internal usage reports
+    owner: data-platform-team
+    criticality: medium
+    tier: tier-3
+    environment: staging
+    cloud_provider: aws
+    runtime: kubernetes
+    runbook: runbooks/reporting-api.md
+    rollback_required: true
+    monitoring_required: true
+    approval_required: false
+    dependencies:
+      - postgres
+    business_impact: Internal reports may be delayed
