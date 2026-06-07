@@ -1,8 +1,9 @@
-# ChangeGuard - Put it in your PR and tells you if the production change is risky
+# ChangeGuard 
+### Put it in your PR and tells you if the production change is risky
 
-**Pre-deployment risk assessment for SRE and Platform teams.**
+>**Pre-deployment risk assessment for SRE and Platform teams.**
 
-> **Stop risky production changes before they become incidents.**
+>**Stop risky production changes before they become incidents.**
 
 ChangeGuard is built from real-world SRE, cloud operations, ITSM, and change-governance experience in mission-critical 24/7 environments.
 It is designed for teams that need more production discipline than a simple checklist, but less overhead than a full enterprise ITSM platform.
