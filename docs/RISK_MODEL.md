@@ -1,0 +1,139 @@
+# ChangeGuard Risk Model
+
+ChangeGuard calculates deployment risk by combining:
+
+1. Service catalog controls
+2. Change request completeness
+3. Change type
+4. Terraform risk signals
+5. Kubernetes risk signals
+
+The result is a score from `0` to `100`.
+
+---
+
+## Risk levels
+
+| Score | Level | Meaning |
+|---:|---|---|
+| 0–30 | LOW | Normal deployment process is usually acceptable. |
+| 31–60 | MEDIUM | Proceed with caution and owner review. |
+| 61–80 | HIGH | Senior review recommended before deployment. |
+| 81–100 | CRITICAL | Deployment should be blocked until gaps are resolved. |
+
+---
+
+## Philosophy
+
+ChangeGuard is not trying to replace human judgment.
+
+It helps SRE, DevOps, and Platform teams make change risk visible before production impact happens.
+
+The goal is to reduce ambiguity before deployment by asking:
+
+- Is the service critical?
+- Is there a clear owner?
+- Is there a valid rollback plan?
+- Is monitoring ready?
+- Is post-deploy validation defined?
+- Is the change touching risky infrastructure?
+- Is Kubernetes exposing risky runtime behavior?
+- Is there enough evidence to proceed safely?
+
+---
+
+## Service controls
+
+ChangeGuard checks whether the service has basic operational controls:
+
+| Rule | Risk |
+|---|---|
+| Production change | Production changes are inherently higher risk. |
+| Critical service | High/critical services have stronger business impact. |
+| Missing owner | No clear accountable team/person. |
+| Missing runbook | Operators may not know how to respond. |
+| Missing business impact | Stakeholders may not understand the consequence of failure. |
+| Missing rollback plan | Recovery path is unclear. |
+| Missing monitoring plan | Teams may not detect failure quickly. |
+| Missing validation plan | Teams may not know if the change succeeded. |
+
+---
+
+## Change type rules
+
+Some change types carry higher risk by default:
+
+| Change type | Reason |
+|---|---|
+| `database` | Data integrity and rollback are often complex. |
+| `security` | Access, identity, and exposure risks. |
+| `network` | Connectivity and blast radius risks. |
+| `infrastructure` | Foundational platform changes can affect many systems. |
+
+---
+
+## Terraform scanner
+
+The Terraform scanner is intentionally simple in the MVP. It scans plan or diff text for risky signals.
+
+Examples:
+
+| Signal | Why it matters |
+|---|---|
+| IAM policy / role changes | Can expand access or break permissions. |
+| Security group / firewall changes | Can expose services or block traffic. |
+| Database resources | May affect persistence or availability. |
+| Destroy / delete actions | Can remove production resources. |
+| Public IP exposure | May create external exposure. |
+| DNS changes | Can affect routing and availability. |
+| KMS changes | Can affect encryption, secrets, or access. |
+
+---
+
+## Kubernetes scanner
+
+The Kubernetes scanner checks for signals such as:
+
+| Signal | Why it matters |
+|---|---|
+| Deployment changes | Runtime behavior may change. |
+| StatefulSet changes | Stateful workloads are harder to roll back. |
+| Ingress changes | External routing exposure. |
+| NetworkPolicy changes | Connectivity or isolation changes. |
+| Secret changes | Sensitive configuration risk. |
+| LoadBalancer exposure | Public exposure risk. |
+| Replicas set to zero | Availability risk. |
+| Missing readinessProbe | Traffic may be sent before the app is ready. |
+| Missing livenessProbe | Failed containers may not self-heal. |
+
+---
+
+## Current limitations
+
+ChangeGuard currently uses lightweight YAML validation and keyword-based scanning.
+
+It does not yet:
+
+- Parse Terraform JSON plans structurally.
+- Parse Kubernetes manifests into full resource graphs.
+- Connect to GitHub, PagerDuty, Datadog, Grafana, or ServiceNow directly.
+- Use historical incident data.
+- Use AI to generate rollback or validation plans.
+- Replace CAB, change advisory, or production readiness approval processes.
+
+Those are good future roadmap items.
+
+---
+
+## Suggested future improvements
+
+- Terraform JSON plan parser
+- Kubernetes object parser
+- GitHub PR comment integration
+- ServiceNow / Jira change ticket generator
+- PagerDuty / Opsgenie incident history lookup
+- Datadog / Prometheus / Grafana monitor validation
+- OpenTelemetry signal validation
+- AI-assisted risk explanation
+- Policy-as-code support
+- Custom rule packs by industry: fintech, SaaS, healthcare, travel, ecommerce
