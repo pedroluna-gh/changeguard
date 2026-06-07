@@ -1,4 +1,4 @@
-# ChangeGuard
+# ChangeGuard - Put it in your PR and tells you if the production change is risky
 
 **Pre-deployment risk assessment for SRE and Platform teams.**
 
