@@ -17,7 +17,7 @@ It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitH
 
 ![ChangeGuard web app](docs/screenshots/app-overview.png)
 
-_Screenshots are placeholders — see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) for how to capture real ones._
+_The ChangeGuard web app: load an example scenario, fill in the editors, and run a risk assessment. See [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) for how these were captured._
 
 ---
 
