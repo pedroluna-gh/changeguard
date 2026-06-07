@@ -1,5 +1,7 @@
 # ChangeGuard
 
+**Pre-deployment risk assessment for SRE and Platform teams.**
+
 > **Stop risky production changes before they become incidents.**
 
 ChangeGuard is built from real-world SRE, cloud operations, ITSM, and change-governance experience in mission-critical 24/7 environments.
@@ -11,10 +13,11 @@ It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitH
 
 [![CI](https://img.shields.io/badge/tests-pytest-0a7?logo=pytest)](#running-the-tests)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](#requirements)
 
-<!-- Add a hero screenshot of the Streamlit app here, e.g.: -->
-<!-- ![ChangeGuard web app](docs/screenshots/app-overview.png) -->
+![ChangeGuard web app](docs/screenshots/app-overview.png)
+
+_Screenshots are placeholders — see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) for how to capture real ones._
 
 ---
 
@@ -38,7 +41,21 @@ ChangeGuard makes that judgement **explicit, consistent, and auditable**. It enc
 - Risky Terraform signals: IAM/role changes, security groups, firewalls, DNS, KMS, database instances, public IP exposure, and `destroy` / `delete` actions
 - Risky Kubernetes signals: Ingress, Secret, NetworkPolicy, StatefulSet, LoadBalancer exposure, `replicas: 0`, and Deployments missing readiness / liveness probes
 
-## Quick demo
+## Who is this for?
+
+  - **SRE and Platform teams** that want consistent, auditable change reviews instead of gut-feel approvals.
+  - **DevOps engineers** who need a lightweight risk gate in CI/CD without standing up a full ITSM platform.
+  - **Engineering leads and on-call responders** who want to see the exact gaps (rollback, monitoring, ownership, validation) before a change ships.
+  - **Cloud operations teams** reviewing Terraform and Kubernetes changes for risky signals.
+
+  ## What ChangeGuard is *not*
+
+  - It is **not** an AI tool. Every score comes from transparent, explainable rules — no model, no guesswork.
+  - It is **not** a security scanner or policy engine. It surfaces risk signals to inform human review; it is not a security boundary.
+  - It does **not** parse full Terraform/Kubernetes object graphs (yet). The MVP scanners match known risky keywords in pasted plan/manifest text.
+  - It stores **no data**, requires **no login**, makes **no external API calls**, and needs **no database**. Everything runs locally.
+
+  ## Quick demo
 
 Try it in under a minute without writing any YAML:
 
@@ -61,8 +78,7 @@ changeguard \
   --output report.md
 ```
 
-<!-- Add a screenshot of the risk results / score breakdown here, e.g.: -->
-<!-- ![Risk assessment results](docs/screenshots/results.png) -->
+![Risk assessment results](docs/screenshots/risk-results.png)
 
 ## Installation
 
@@ -92,7 +108,7 @@ pip install -e ".[app]"      # editable install with the web UI extras
 
 ### Requirements
 
-- Python 3.9+
+- Python 3.10+
 - Core dependency: `pyyaml`. The web UI extras add `streamlit` and `pandas`.
 
 ## Usage
@@ -138,6 +154,31 @@ env:
 ```
 
 Optional inputs are skipped automatically when the file is absent. The workflow needs `pull-requests: write` permission to post the comment (already declared in the example file).
+
+  #### Use it as a composite action
+
+  ChangeGuard also ships a composite action ([`action.yml`](action.yml)) so you can drop it into any workflow with a single step:
+
+  ```yaml
+  - uses: actions/checkout@v4
+
+  - name: ChangeGuard risk gate
+    id: changeguard
+    uses: pedroluna-gh/changeguard@v0.1.0
+    with:
+      services: services.yaml
+      change: change.yaml
+      terraform: tfplan.txt        # optional
+      k8s: k8s.yaml                # optional
+      fail-on: critical            # none | low | medium | high | critical
+
+  - name: Show result
+    run: echo "Risk: ${{ steps.changeguard.outputs.risk-level }} (${{ steps.changeguard.outputs.risk-score }}/100)"
+  ```
+
+  The action sets `risk-level`, `risk-score`, `report-path`, and `json-report-path` outputs and fails the job according to `fail-on`. See [docs/GITHUB_ACTION.md](docs/GITHUB_ACTION.md) for the full reference.
+
+  ![ChangeGuard PR comment](docs/screenshots/github-pr-comment.png)
 
 ## Example output
 
@@ -243,6 +284,8 @@ ChangeGuard is a **local, offline** tool: it makes no outbound network calls, st
 - Found a vulnerability? Please report it privately via a GitHub security advisory rather than a public issue.
 
 ## Roadmap
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the full version-by-version plan. Highlights:
 
 - Real Terraform plan JSON parser
 - Real Kubernetes YAML object parser
