@@ -1,7 +1,7 @@
 """Tests that the documented example scenarios produce the expected results.
 
 These lock in the LOW / HIGH / CRITICAL scenarios described in the README and
-shipped under ``examples/`` and in ``changeguard.sample_data``.
+shipped under ``examples/`` and in ``preflightops.sample_data``.
 """
 
 import os
@@ -9,8 +9,8 @@ import os
 import pytest
 import yaml
 
-from changeguard.risk_engine import assess_risk
-from changeguard import sample_data
+from preflightops.risk_engine import assess_risk
+from preflightops import sample_data
 
 EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
 

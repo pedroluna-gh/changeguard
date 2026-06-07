@@ -1,4 +1,4 @@
-"""Built-in example scenarios for ChangeGuard.
+"""Built-in example scenarios for PreflightOps.
 
 These power the example buttons in the Streamlit UI and back the YAML/text
 files in the ``examples/`` directory.

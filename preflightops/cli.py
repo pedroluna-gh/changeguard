@@ -1,8 +1,8 @@
-"""Command-line interface for ChangeGuard.
+"""Command-line interface for PreflightOps.
 
 Example
 -------
-    python -m changeguard.cli \\
+    python -m preflightops.cli \\
         --services examples/services-critical-risk.yaml \\
         --change examples/change-critical-risk.yaml \\
         --terraform examples/terraform-critical.txt \\
@@ -39,7 +39,7 @@ def _load_text(path):
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
-        prog="changeguard",
+        prog="preflightops",
         description="Pre-deployment risk assessment for SRE and Platform teams.",
     )
     parser.add_argument("--services", required=True, help="Path to the service catalog YAML file")

@@ -1,6 +1,6 @@
 # GitHub Action Usage
 
-ChangeGuard can run as a pull-request risk gate.
+PreflightOps can run as a pull-request risk gate.
 
 It can:
 
@@ -20,13 +20,13 @@ It can:
 Create this file:
 
 ```text
-.github/workflows/changeguard.yml
+.github/workflows/preflightops.yml
 ```
 
 Example:
 
 ```yaml
-name: ChangeGuard
+name: PreflightOps
 
 on:
   pull_request:
@@ -43,12 +43,12 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CHANGEGUARD_INSTALL: "git+https://github.com/pedroluna-gh/changeguard.git@main"
-      CHANGEGUARD_SERVICES: services.yaml
-      CHANGEGUARD_CHANGE: change.yaml
-      CHANGEGUARD_TERRAFORM: tfplan.txt
-      CHANGEGUARD_K8S: k8s.yaml
-      CHANGEGUARD_REPORT: changeguard-report.md
+      PREFLIGHTOPS_INSTALL: "git+https://github.com/pedroluna-gh/preflightops.git@main"
+      PREFLIGHTOPS_SERVICES: services.yaml
+      PREFLIGHTOPS_CHANGE: change.yaml
+      PREFLIGHTOPS_TERRAFORM: tfplan.txt
+      PREFLIGHTOPS_K8S: k8s.yaml
+      PREFLIGHTOPS_REPORT: preflightops-report.md
 
     steps:
       - name: Checkout repository
@@ -59,48 +59,48 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install ChangeGuard
-        run: pip install "$CHANGEGUARD_INSTALL"
+      - name: Install PreflightOps
+        run: pip install "$PREFLIGHTOPS_INSTALL"
 
-      - name: Run ChangeGuard risk assessment
-        id: changeguard
+      - name: Run PreflightOps risk assessment
+        id: preflightops
         run: |
           set -uo pipefail
 
-          args=(--services "$CHANGEGUARD_SERVICES" --change "$CHANGEGUARD_CHANGE")
+          args=(--services "$PREFLIGHTOPS_SERVICES" --change "$PREFLIGHTOPS_CHANGE")
 
-          if [ -n "${CHANGEGUARD_TERRAFORM:-}" ] && [ -f "$CHANGEGUARD_TERRAFORM" ]; then
-            args+=(--terraform "$CHANGEGUARD_TERRAFORM")
+          if [ -n "${PREFLIGHTOPS_TERRAFORM:-}" ] && [ -f "$PREFLIGHTOPS_TERRAFORM" ]; then
+            args+=(--terraform "$PREFLIGHTOPS_TERRAFORM")
           fi
 
-          if [ -n "${CHANGEGUARD_K8S:-}" ] && [ -f "$CHANGEGUARD_K8S" ]; then
-            args+=(--k8s "$CHANGEGUARD_K8S")
+          if [ -n "${PREFLIGHTOPS_K8S:-}" ] && [ -f "$PREFLIGHTOPS_K8S" ]; then
+            args+=(--k8s "$PREFLIGHTOPS_K8S")
           fi
 
-          args+=(--output "$CHANGEGUARD_REPORT")
+          args+=(--output "$PREFLIGHTOPS_REPORT")
 
           set +e
-          changeguard "${args[@]}"
+          preflightops "${args[@]}"
           exit_code=$?
           set -e
 
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
 
       - name: Upload risk report
-        if: always() && hashFiles(env.CHANGEGUARD_REPORT) != ''
+        if: always() && hashFiles(env.PREFLIGHTOPS_REPORT) != ''
         uses: actions/upload-artifact@v4
         with:
-          name: changeguard-report
-          path: ${{ env.CHANGEGUARD_REPORT }}
+          name: preflightops-report
+          path: ${{ env.PREFLIGHTOPS_REPORT }}
 
       - name: Comment risk report on pull request
-        if: always() && github.event_name == 'pull_request' && hashFiles(env.CHANGEGUARD_REPORT) != ''
+        if: always() && github.event_name == 'pull_request' && hashFiles(env.PREFLIGHTOPS_REPORT) != ''
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const marker = '<!-- changeguard-report -->';
-            const body = `${marker}\n` + fs.readFileSync(process.env.CHANGEGUARD_REPORT, 'utf8');
+            const marker = '<!-- preflightops-report -->';
+            const body = `${marker}\n` + fs.readFileSync(process.env.PREFLIGHTOPS_REPORT, 'utf8');
 
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
@@ -131,12 +131,12 @@ jobs:
       - name: Fail on CRITICAL risk
         if: always()
         run: |
-          if [ "${{ steps.changeguard.outputs.exit_code }}" != "0" ]; then
-            echo "ChangeGuard reported CRITICAL risk."
+          if [ "${{ steps.preflightops.outputs.exit_code }}" != "0" ]; then
+            echo "PreflightOps reported CRITICAL risk."
             exit 1
           fi
 
-          echo "ChangeGuard risk check passed."
+          echo "PreflightOps risk check passed."
 ```
 
 ---
@@ -166,7 +166,7 @@ k8s.yaml        # optional
 
 ## Recommended workflow behavior
 
-For early adoption, use ChangeGuard as an advisory comment first.
+For early adoption, use PreflightOps as an advisory comment first.
 
 After teams trust the scoring model, enable blocking behavior for `CRITICAL` risk.
 

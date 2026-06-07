@@ -1,4 +1,4 @@
-"""Core risk assessment engine for ChangeGuard.
+"""Core risk assessment engine for PreflightOps.
 
 The engine combines:
   * declarative rules over the service catalog and change request, and

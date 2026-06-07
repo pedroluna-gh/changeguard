@@ -1,6 +1,6 @@
-# ChangeGuard Roadmap
+# PreflightOps Roadmap
 
-This roadmap describes the planned direction for ChangeGuard. It is intentionally
+This roadmap describes the planned direction for PreflightOps. It is intentionally
 ambitious but constrained by the project's core principles: **no database, no
 login, no external API calls at runtime, and no AI.** Everything must keep
 running locally and remain transparent and explainable.
@@ -13,7 +13,7 @@ suggest or upvote an item.
 - Rule-based risk engine with a `0–100` score and four risk levels.
 - Service-control, change-type, Terraform, and Kubernetes rules.
 - Markdown + JSON reports with a per-source score breakdown.
-- Streamlit web app and `changeguard` CLI.
+- Streamlit web app and `preflightops` CLI.
 - Composite GitHub Action and PR risk-gate workflow.
 
 ## v0.2 — Real Terraform plan parsing
@@ -47,14 +47,14 @@ suggest or upvote an item.
 - Datadog / Grafana dashboard link validation.
 
 > Integrations will be **opt-in** and must never become a hard runtime
-> dependency — ChangeGuard always works fully offline.
+> dependency — PreflightOps always works fully offline.
 
 ## Future / under consideration
 
 - Policy-as-code approval workflows.
 - Additional cloud providers and IaC tools (Pulumi, CloudFormation).
 - Pre-commit hook packaging.
-- PyPI distribution (`pip install changeguard`).
+- PyPI distribution (`pip install preflightops`).
 
 ## Out of scope
 

@@ -50,7 +50,7 @@ def _score_breakdown(triggered: list) -> list:
 def generate_markdown_report(result: dict) -> str:
     """Render a risk result as a Markdown report."""
     lines = []
-    lines.append("# ChangeGuard Risk Report")
+    lines.append("# PreflightOps Risk Report")
     lines.append("")
     lines.append("## Summary")
     lines.append("")

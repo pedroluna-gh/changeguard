@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ChangeGuard are documented in this file.
+All notable changes to PreflightOps are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -30,7 +30,7 @@ Initial public release.
   readiness / liveness probes).
 - **Markdown and JSON reports** with a per-source score breakdown.
 - **Streamlit web app** with built-in LOW / HIGH / CRITICAL example loaders.
-- **`changeguard` CLI** that exits `1` on CRITICAL risk and `2` on input errors.
+- **`preflightops` CLI** that exits `1` on CRITICAL risk and `2` on input errors.
 - **Composite GitHub Action** (`action.yml`) and a ready-to-use PR risk-gate
   workflow that comments the report on pull requests and uploads it as an artifact.
 - **Documentation**: README, risk model, input schema, GitHub Action guide,
@@ -38,5 +38,5 @@ Initial public release.
 - **pytest suite** covering the engine, validators, scanners, reports, CLI,
   web app, and the documented example scenarios.
 
-[Unreleased]: https://github.com/pedroluna-gh/changeguard/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/pedroluna-gh/changeguard/releases/tag/v0.1.0
+[Unreleased]: https://github.com/pedroluna-gh/preflightops/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/pedroluna-gh/preflightops/releases/tag/v0.1.0

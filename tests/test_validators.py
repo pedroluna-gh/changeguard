@@ -2,7 +2,7 @@
 
 import pytest
 
-from changeguard.validators import (
+from preflightops.validators import (
     VAGUE_ROLLBACK_PHRASES,
     MIN_ROLLBACK_LENGTH,
     is_bad_rollback_plan,

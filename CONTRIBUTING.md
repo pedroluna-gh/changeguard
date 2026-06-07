@@ -1,8 +1,8 @@
-# Contributing to ChangeGuard
+# Contributing to PreflightOps
 
 Thanks for considering a contribution.
 
-ChangeGuard is an open-source pre-deployment risk assessment toolkit for SRE, DevOps, Platform Engineering, and Cloud Operations teams.
+PreflightOps is an open-source pre-deployment risk assessment toolkit for SRE, DevOps, Platform Engineering, and Cloud Operations teams.
 
 The project is intentionally lightweight: clear rules, readable code, transparent scoring, and practical outputs.
 
@@ -27,8 +27,8 @@ Good contributions include:
 ## Local setup
 
 ```bash
-git clone https://github.com/pedroluna-gh/changeguard.git
-cd changeguard
+git clone https://github.com/pedroluna-gh/preflightops.git
+cd preflightops
 pip install -r requirements.txt
 pytest
 ```
@@ -42,7 +42,7 @@ streamlit run app.py
 Run the CLI:
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-high-risk.yaml \
   --change examples/change-high-risk.yaml \
   --output report.md

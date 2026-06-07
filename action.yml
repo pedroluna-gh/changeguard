@@ -1,4 +1,4 @@
-name: "ChangeGuard"
+name: "PreflightOps"
 description: "Pre-deployment risk assessment that scores production change risk and can fail the build on critical risk."
 author: "pedroluna-gh"
 branding:
@@ -23,11 +23,11 @@ inputs:
   output:
     description: "Path to write the Markdown report."
     required: false
-    default: "changeguard-report.md"
+    default: "preflightops-report.md"
   json-output:
     description: "Path to write the JSON report."
     required: false
-    default: "changeguard-report.json"
+    default: "preflightops-report.json"
   fail-on:
     description: "Minimum risk level that fails the action: none, low, medium, high, or critical."
     required: false
@@ -59,11 +59,11 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install ChangeGuard
+    - name: Install PreflightOps
       shell: bash
       run: pip install "${{ github.action_path }}"
 
-    - name: Run ChangeGuard risk assessment
+    - name: Run PreflightOps risk assessment
       id: assess
       shell: bash
       env:
@@ -87,11 +87,11 @@ runs:
         args+=(--output "$CG_OUTPUT" --json-output "$CG_JSON")
 
         cli_exit=0
-        changeguard "${args[@]}" || cli_exit=$?
+        preflightops "${args[@]}" || cli_exit=$?
 
         # Exit code 2 means an input/parse/runtime error: fail hard.
         if [ "$cli_exit" -eq 2 ]; then
-          echo "::error::ChangeGuard failed to run (exit code 2)."
+          echo "::error::PreflightOps failed to run (exit code 2)."
           exit 2
         fi
 
@@ -105,7 +105,7 @@ runs:
           echo "json-report-path=$CG_JSON"
         } >> "$GITHUB_OUTPUT"
 
-        echo "ChangeGuard risk: $level ($score/100)"
+        echo "PreflightOps risk: $level ($score/100)"
 
         # Gate the job based on fail-on.
         # Use a case statement (not associative arrays) so this works on
@@ -132,6 +132,6 @@ runs:
         esac
 
         if [ "$lv" -ge "$th" ]; then
-          echo "::error::ChangeGuard risk level $level meets or exceeds fail-on threshold ($CG_FAIL_ON)."
+          echo "::error::PreflightOps risk level $level meets or exceeds fail-on threshold ($CG_FAIL_ON)."
           exit 1
         fi

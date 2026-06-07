@@ -1,6 +1,6 @@
-# ChangeGuard Risk Model
+# PreflightOps Risk Model
 
-ChangeGuard calculates deployment risk by combining:
+PreflightOps calculates deployment risk by combining:
 
 1. Service catalog controls
 2. Change request completeness
@@ -25,7 +25,7 @@ The result is a score from `0` to `100`.
 
 ## Philosophy
 
-ChangeGuard is not trying to replace human judgment.
+PreflightOps is not trying to replace human judgment.
 
 It helps SRE, DevOps, and Platform teams make change risk visible before production impact happens.
 
@@ -44,7 +44,7 @@ The goal is to reduce ambiguity before deployment by asking:
 
 ## Service controls
 
-ChangeGuard checks whether the service has basic operational controls:
+PreflightOps checks whether the service has basic operational controls:
 
 | Rule | Risk |
 |---|---|
@@ -110,7 +110,7 @@ The Kubernetes scanner checks for signals such as:
 
 ## Current limitations
 
-ChangeGuard currently uses lightweight YAML validation and keyword-based scanning.
+PreflightOps currently uses lightweight YAML validation and keyword-based scanning.
 
 It does not yet:
 

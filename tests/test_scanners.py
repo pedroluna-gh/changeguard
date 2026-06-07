@@ -2,7 +2,7 @@
 
 import pytest
 
-from changeguard.scanners import (
+from preflightops.scanners import (
     TERRAFORM_SIGNALS,
     KUBERNETES_SIGNALS,
     scan_terraform,

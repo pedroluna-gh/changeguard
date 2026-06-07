@@ -1,6 +1,6 @@
 # Security Policy
 
-ChangeGuard is designed to help teams identify risky production changes before deployment.
+PreflightOps is designed to help teams identify risky production changes before deployment.
 
 Because it may process operational metadata, Terraform plans, Kubernetes manifests, service catalogs, and change requests, users should treat inputs carefully.
 
@@ -8,7 +8,7 @@ Because it may process operational metadata, Terraform plans, Kubernetes manifes
 
 ## Supported versions
 
-ChangeGuard is currently in early development.
+PreflightOps is currently in early development.
 
 | Version | Supported |
 |---|---|
@@ -37,7 +37,7 @@ Do not open public issues for vulnerabilities involving:
 
 ## Sensitive data warning
 
-Do not paste real secrets into ChangeGuard.
+Do not paste real secrets into PreflightOps.
 
 Avoid uploading:
 
@@ -57,7 +57,7 @@ Terraform plans and Kubernetes manifests can contain sensitive values. Review be
 
 ## Current security model
 
-ChangeGuard currently:
+PreflightOps currently:
 
 - runs locally;
 - does not require a database;
@@ -88,7 +88,7 @@ If you do not need PR comments, remove `pull-requests: write`.
 
 ## Recommended safe usage
 
-- Run ChangeGuard on sanitized examples first.
+- Run PreflightOps on sanitized examples first.
 - Avoid committing generated reports if they contain sensitive information.
 - Review Terraform plans before storing them in the repository.
 - Avoid using production secrets in Kubernetes examples.

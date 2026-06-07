@@ -1,6 +1,6 @@
-# ChangeGuard Input Schema
+# PreflightOps Input Schema
 
-ChangeGuard uses two required YAML files:
+PreflightOps uses two required YAML files:
 
 1. `services.yaml` — describes the service catalog.
 2. `change.yaml` — describes the proposed production change.

@@ -1,4 +1,4 @@
-"""Tests for the Streamlit web UI in ``changeguard/app.py``.
+"""Tests for the Streamlit web UI in ``preflightops/app.py``.
 
 These exercise the app's helper/logic functions and run the full Streamlit
 script headlessly via ``streamlit.testing.v1.AppTest`` (no live browser), so a
@@ -13,9 +13,9 @@ import pytest
 import yaml
 
 import app
-from changeguard.risk_engine import assess_risk
-from changeguard.report import generate_markdown_report, generate_json_report
-from changeguard import sample_data
+from preflightops.risk_engine import assess_risk
+from preflightops.report import generate_markdown_report, generate_json_report
+from preflightops import sample_data
 
 AppTest = pytest.importorskip("streamlit.testing.v1").AppTest
 
@@ -295,7 +295,7 @@ class TestReportDownloads:
 
     def test_markdown_download_matches_generator(self, monkeypatch):
         _, result, captured = self._run_assessment(monkeypatch)
-        entry = captured["changeguard-report.md"]
+        entry = captured["preflightops-report.md"]
         assert entry["mimetype"] == "text/markdown"
         downloaded = entry["data"]
         if isinstance(downloaded, bytes):
@@ -304,7 +304,7 @@ class TestReportDownloads:
 
     def test_json_download_parses_and_matches_generator(self, monkeypatch):
         _, result, captured = self._run_assessment(monkeypatch)
-        entry = captured["changeguard-report.json"]
+        entry = captured["preflightops-report.json"]
         assert entry["mimetype"] == "application/json"
         downloaded = entry["data"]
         if isinstance(downloaded, bytes):
@@ -324,10 +324,10 @@ class TestReportDownloads:
         assert not at.exception
         result = at.session_state["result"]
 
-        md = captured["changeguard-report.md"]["data"]
+        md = captured["preflightops-report.md"]["data"]
         if isinstance(md, bytes):
             md = md.decode("utf-8")
-        js = captured["changeguard-report.json"]["data"]
+        js = captured["preflightops-report.json"]["data"]
         if isinstance(js, bytes):
             js = js.decode("utf-8")
 

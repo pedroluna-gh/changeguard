@@ -1,4 +1,4 @@
-"""Tests for the command-line entry point (``changeguard.cli``).
+"""Tests for the command-line entry point (``preflightops.cli``).
 
 The CLI is what a CI pipeline runs: its exit code (1 on CRITICAL risk, 0
 otherwise) gates the build, and it writes the Markdown report reviewers read.
@@ -11,8 +11,8 @@ import os
 import pytest
 import yaml
 
-from changeguard import cli
-from changeguard import sample_data
+from preflightops import cli
+from preflightops import sample_data
 
 EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
 
@@ -81,7 +81,7 @@ class TestOutput:
         )
         assert output.exists()
         contents = output.read_text(encoding="utf-8")
-        assert "# ChangeGuard Risk Report" in contents
+        assert "# PreflightOps Risk Report" in contents
         assert "Risk Level: HIGH" in contents
 
     def test_prints_score_and_level_summary(self, tmp_path, capsys):

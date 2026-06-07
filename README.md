@@ -1,34 +1,17 @@
-# ChangeGuard 
-### Put it in your PR and tells you if the production change is risky
+# PreflightOps
 
->**Pre-deployment risk assessment for SRE and Platform teams.**
+> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk.
 
->**Stop risky production changes before they become incidents.**
+PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
-ChangeGuard is built from real-world SRE, cloud operations, ITSM, and change-governance experience in mission-critical 24/7 environments.
-It is designed for teams that need more production discipline than a simple checklist, but less overhead than a full enterprise ITSM platform.
-
-ChangeGuard is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
-## Try it in a pull request
-
-```yaml
-- uses: pedroluna-gh/changeguard@v0.1.0
-  with:
-    services: services.yaml
-    change: change.yaml
-    terraform: tfplan.txt
-    k8s: k8s.yaml
-    fail-on: critical
-```
 It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
 
-[![CI](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml)
+[![CI](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](#requirements)
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
 
-![ChangeGuard web app](docs/screenshots/app-overview.png)
-
-_The ChangeGuard web app: load an example scenario, fill in the editors, and run a risk assessment. See [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) for how these were captured._
+<!-- Add a hero screenshot of the Streamlit app here, e.g.: -->
+<!-- ![PreflightOps web app](docs/screenshots/app-overview.png) -->
 
 ---
 
@@ -41,7 +24,7 @@ Most production incidents are triggered by **changes** — deployments, config u
 - Monitoring and post-deploy validation are afterthoughts.
 - Risky Terraform (IAM, destroy/delete, security groups) and Kubernetes (exposed Secrets, missing probes, `replicas: 0`) changes slip through review.
 
-ChangeGuard makes that judgement **explicit, consistent, and auditable**. It encodes change-governance and production-readiness checks as transparent rules so every change gets the same scrutiny — and so reviewers can focus on the findings that actually matter.
+PreflightOps makes that judgement **explicit, consistent, and auditable**. It encodes change-governance and production-readiness checks as transparent rules so every change gets the same scrutiny — and so reviewers can focus on the findings that actually matter.
 
 ## What it checks
 
@@ -52,27 +35,13 @@ ChangeGuard makes that judgement **explicit, consistent, and auditable**. It enc
 - Risky Terraform signals: IAM/role changes, security groups, firewalls, DNS, KMS, database instances, public IP exposure, and `destroy` / `delete` actions
 - Risky Kubernetes signals: Ingress, Secret, NetworkPolicy, StatefulSet, LoadBalancer exposure, `replicas: 0`, and Deployments missing readiness / liveness probes
 
-## Who is this for?
-
-  - **SRE and Platform teams** that want consistent, auditable change reviews instead of gut-feel approvals.
-  - **DevOps engineers** who need a lightweight risk gate in CI/CD without standing up a full ITSM platform.
-  - **Engineering leads and on-call responders** who want to see the exact gaps (rollback, monitoring, ownership, validation) before a change ships.
-  - **Cloud operations teams** reviewing Terraform and Kubernetes changes for risky signals.
-
-  ## What ChangeGuard is *not*
-
-  - It is **not** an AI tool. Every score comes from transparent, explainable rules — no model, no guesswork.
-  - It is **not** a security scanner or policy engine. It surfaces risk signals to inform human review; it is not a security boundary.
-  - It does **not** parse full Terraform/Kubernetes object graphs (yet). The MVP scanners match known risky keywords in pasted plan/manifest text.
-  - It stores **no data**, requires **no login**, makes **no external API calls**, and needs **no database**. Everything runs locally.
-
-  ## Quick demo
+## Quick demo
 
 Try it in under a minute without writing any YAML:
 
 ```bash
 # 1. Install (with the web UI extras)
-pip install -e ".[app]"     # run from the changeguard/ directory
+pip install -e ".[app]"     # run from the preflightops/ directory
 
 # 2. Launch the web app
 streamlit run app.py
@@ -83,35 +52,36 @@ Then in the browser: click **Low / High / Critical Risk Example** to load a read
 Prefer the terminal? Score one of the bundled examples directly:
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-high-risk.yaml \
   --change examples/change-high-risk.yaml \
   --output report.md
 ```
 
-![Risk assessment results](docs/screenshots/risk-results.png)
+<!-- Add a screenshot of the risk results / score breakdown here, e.g.: -->
+<!-- ![Risk assessment results](docs/screenshots/results.png) -->
 
 ## Installation
 
-Install ChangeGuard and its `changeguard` CLI with a single command:
+Install PreflightOps and its `preflightops` CLI with a single command:
 
 ```bash
-pip install git+https://github.com/pedroluna-gh/changeguard.git@main
+pip install git+https://github.com/pedroluna-gh/preflightops.git@main
 ```
 
-> Replace the URL with your own fork/repo. Once published to PyPI, this becomes `pip install changeguard`.
+> Replace the URL with your own fork/repo. Once published to PyPI, this becomes `pip install preflightops`.
 
 To also run the Streamlit web UI, add the optional `app` extras:
 
 ```bash
-pip install "changeguard[app] @ git+https://github.com/pedroluna-gh/changeguard.git@main"
+pip install "preflightops[app] @ git+https://github.com/pedroluna-gh/preflightops.git@main"
 ```
 
 ### Develop from a clone
 
 ```bash
-git clone https://github.com/pedroluna-gh/changeguard.git
-cd changeguard
+git clone https://github.com/pedroluna-gh/preflightops.git
+cd preflightops
 pip install -e ".[app]"      # editable install with the web UI extras
 ```
 
@@ -119,7 +89,7 @@ pip install -e ".[app]"      # editable install with the web UI extras
 
 ### Requirements
 
-- Python 3.10+
+- Python 3.9+
 - Core dependency: `pyyaml`. The web UI extras add `streamlit` and `pandas`.
 
 ## Usage
@@ -135,7 +105,7 @@ Load an example, edit the **Service Catalog** and **Change Request** YAML, optio
 ### Command line
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-critical-risk.yaml \
   --change examples/change-critical-risk.yaml \
   --terraform examples/terraform-critical.txt \
@@ -144,59 +114,34 @@ changeguard \
   --json-output report.json
 ```
 
-(The equivalent `python -m changeguard.cli ...` also works.)
+(The equivalent `python -m preflightops.cli ...` also works.)
 
 The CLI prints the score and level, writes a Markdown report to `--output` (and an optional JSON report to `--json-output`), and **exits with code `1` when the risk level is `CRITICAL`** (otherwise `0`) — so you can fail a pipeline on critical risk.
 
 ### GitHub Action (PR risk gate)
 
-ChangeGuard ships with a ready-to-use workflow at [`.github/workflows/changeguard.yml`](.github/workflows/changeguard.yml). On every pull request it scores the change, posts the Markdown report as a PR comment (updated in place), uploads it as a build artifact, and **fails the check when the risk level is `CRITICAL`**.
+PreflightOps ships with a ready-to-use workflow at [`.github/workflows/preflightops.yml`](.github/workflows/preflightops.yml). On every pull request it scores the change, posts the Markdown report as a PR comment (updated in place), uploads it as a build artifact, and **fails the check when the risk level is `CRITICAL`**.
 
 Point the workflow at your input files via the `env` block at the top of the file:
 
 ```yaml
 env:
-  CHANGEGUARD_INSTALL: "git+https://github.com/pedroluna-gh/changeguard.git@main"
-  CHANGEGUARD_SERVICES: services.yaml   # required: service catalog
-  CHANGEGUARD_CHANGE: change.yaml       # required: change request
-  CHANGEGUARD_TERRAFORM: tfplan.txt     # optional: Terraform plan/diff
-  CHANGEGUARD_K8S: k8s.yaml             # optional: Kubernetes manifest
-  CHANGEGUARD_REPORT: changeguard-report.md
+  PREFLIGHTOPS_INSTALL: "git+https://github.com/pedroluna-gh/preflightops.git@main"
+  PREFLIGHTOPS_SERVICES: services.yaml   # required: service catalog
+  PREFLIGHTOPS_CHANGE: change.yaml       # required: change request
+  PREFLIGHTOPS_TERRAFORM: tfplan.txt     # optional: Terraform plan/diff
+  PREFLIGHTOPS_K8S: k8s.yaml             # optional: Kubernetes manifest
+  PREFLIGHTOPS_REPORT: preflightops-report.md
 ```
 
 Optional inputs are skipped automatically when the file is absent. The workflow needs `pull-requests: write` permission to post the comment (already declared in the example file).
-
-  #### Use it as a composite action
-
-  ChangeGuard also ships a composite action ([`action.yml`](action.yml)) so you can drop it into any workflow with a single step:
-
-  ```yaml
-  - uses: actions/checkout@v4
-
-  - name: ChangeGuard risk gate
-    id: changeguard
-    uses: pedroluna-gh/changeguard@v0.1.0
-    with:
-      services: services.yaml
-      change: change.yaml
-      terraform: tfplan.txt        # optional
-      k8s: k8s.yaml                # optional
-      fail-on: critical            # none | low | medium | high | critical
-
-  - name: Show result
-    run: echo "Risk: ${{ steps.changeguard.outputs.risk-level }} (${{ steps.changeguard.outputs.risk-score }}/100)"
-  ```
-
-  The action sets `risk-level`, `risk-score`, `report-path`, and `json-report-path` outputs and fails the job according to `fail-on`. See [docs/GITHUB_ACTION.md](docs/GITHUB_ACTION.md) for the full reference.
-
-  ![ChangeGuard PR comment](docs/screenshots/github-pr-comment.png)
 
 ## Example output
 
 A `HIGH`-risk production deployment produces a report like this:
 
 ```markdown
-# ChangeGuard Risk Report
+# PreflightOps Risk Report
 
 ## Summary
 
@@ -233,7 +178,7 @@ The JSON report (`--json-output`) contains the same data plus a grouped `score_b
 
 ## How scoring works
 
-ChangeGuard sums the points from every triggered rule and scanner finding, capping the total at 100:
+PreflightOps sums the points from every triggered rule and scanner finding, capping the total at 100:
 
 | Score   | Level      | What it means                                                        |
 | ------- | ---------- | ------------------------------------------------------------------- |
@@ -247,9 +192,9 @@ Findings are grouped by source — **Service Controls**, **Change Type**, **Terr
 ## Project structure
 
 ```
-changeguard/
+preflightops/
 ├── app.py                     # Streamlit web app (UI, example loader, results)
-├── changeguard/               # Core package
+├── preflightops/               # Core package
 │   ├── risk_engine.py         # Rules, scoring, levels, recommendations
 │   ├── validators.py          # Rollback / monitoring / validation plan checks
 │   ├── scanners.py            # Terraform & Kubernetes keyword risk scanners
@@ -265,14 +210,14 @@ changeguard/
 
 ## Running the tests
 
-ChangeGuard ships with a `pytest` suite covering the risk-engine rules, the rollback/monitoring/validation validators, the Terraform/Kubernetes scanners (including the readiness/liveness probe checks), the CLI and report generators, the web UI, and the documented LOW / HIGH / CRITICAL scenarios.
+PreflightOps ships with a `pytest` suite covering the risk-engine rules, the rollback/monitoring/validation validators, the Terraform/Kubernetes scanners (including the readiness/liveness probe checks), the CLI and report generators, the web UI, and the documented LOW / HIGH / CRITICAL scenarios.
 
 ```bash
 pip install -r requirements.txt
 pytest
 ```
 
-Run from the `changeguard/` directory. Tests live under `tests/`.
+Run from the `preflightops/` directory. Tests live under `tests/`.
 
 ## Contributing
 
@@ -288,15 +233,13 @@ New risk rules should be transparent and explainable: a stable rule id, a severi
 
 ## Security
 
-ChangeGuard is a **local, offline** tool: it makes no outbound network calls, stores no data, and requires no credentials. Your service catalogs, change requests, Terraform plans, and Kubernetes manifests never leave your machine or CI runner.
+PreflightOps is a **local, offline** tool: it makes no outbound network calls, stores no data, and requires no credentials. Your service catalogs, change requests, Terraform plans, and Kubernetes manifests never leave your machine or CI runner.
 
 - Treat any input you paste as sensitive — Terraform plans and Kubernetes manifests can contain infrastructure details. The bundled examples use placeholder data only.
-- ChangeGuard is a **decision-support aid, not a security boundary.** It surfaces risk signals to inform human review; it does not guarantee a change is safe.
+- PreflightOps is a **decision-support aid, not a security boundary.** It surfaces risk signals to inform human review; it does not guarantee a change is safe.
 - Found a vulnerability? Please report it privately via a GitHub security advisory rather than a public issue.
 
 ## Roadmap
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the full version-by-version plan. Highlights:
 
 - Real Terraform plan JSON parser
 - Real Kubernetes YAML object parser

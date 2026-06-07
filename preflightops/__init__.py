@@ -1,4 +1,4 @@
-"""ChangeGuard: pre-deployment risk assessment for SRE and Platform teams."""
+"""PreflightOps: pre-deployment risk assessment for SRE and Platform teams."""
 
 from .risk_engine import (
     assess_risk,

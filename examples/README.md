@@ -1,4 +1,4 @@
-# ChangeGuard Examples
+# PreflightOps Examples
 
 This directory contains example inputs for three risk scenarios:
 
@@ -15,7 +15,7 @@ This directory contains example inputs for three risk scenarios:
 A staging deployment for a medium-criticality internal reporting service.
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-low-risk.yaml \
   --change examples/change-low-risk.yaml \
   --output report.md
@@ -30,7 +30,7 @@ A production deployment for a high-criticality checkout API.
 The rollback plan exists, but monitoring is incomplete and validation steps are missing.
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-high-risk.yaml \
   --change examples/change-high-risk.yaml \
   --output report.md
@@ -54,7 +54,7 @@ Risk signals include:
 - Deployment missing readiness/liveness probes.
 
 ```bash
-changeguard \
+preflightops \
   --services examples/services-critical-risk.yaml \
   --change examples/change-critical-risk.yaml \
   --terraform examples/terraform-critical.txt \

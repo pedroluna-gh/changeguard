@@ -1,4 +1,4 @@
-"""Tests for the Markdown report generator (``changeguard.report``).
+"""Tests for the Markdown report generator (``preflightops.report``).
 
 The report is what reviewers read in a pull request, so these lock in that the
 summary fields, triggered rules (rendered under the grouped ``Score Breakdown``
@@ -6,7 +6,7 @@ section), missing controls, and business impact sections all render correctly
 for both populated and empty results.
 """
 
-from changeguard.report import generate_markdown_report
+from preflightops.report import generate_markdown_report
 
 
 def _section(report, heading):
@@ -56,7 +56,7 @@ def populated_result():
 class TestPopulatedReport:
     def test_has_title(self):
         report = generate_markdown_report(populated_result())
-        assert report.startswith("# ChangeGuard Risk Report")
+        assert report.startswith("# PreflightOps Risk Report")
 
     def test_summary_fields_render(self):
         report = generate_markdown_report(populated_result())
@@ -150,7 +150,7 @@ class TestEmptyReport:
 # ---------------------------------------------------------------------------
 def test_handles_missing_keys_gracefully():
     report = generate_markdown_report({})
-    assert "# ChangeGuard Risk Report" in report
+    assert "# PreflightOps Risk Report" in report
     assert "## Summary" in report
     # Defaults render rather than raising KeyError.
     assert "Risk Score: 0/100" in report

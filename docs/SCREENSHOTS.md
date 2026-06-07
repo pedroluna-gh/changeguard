@@ -1,7 +1,7 @@
 # Screenshots
 
 The images under `docs/screenshots/` are referenced from the README. They are
-real captures of the running ChangeGuard app (`app-overview.png`, `risk-results.png`)
+real captures of the running PreflightOps app (`app-overview.png`, `risk-results.png`)
 and a faithful mock of the GitHub PR comment (`github-pr-comment.png`), all using
 the bundled placeholder example data. The steps below explain how to regenerate them.
 
@@ -9,7 +9,7 @@ the bundled placeholder example data. The steps below explain how to regenerate 
 |---|---|---|
 | `app-overview.png` | README hero | The Streamlit app with the Service Catalog and Change Request editors and the **Run Risk Assessment** button. |
 | `risk-results.png` | README "Quick demo" | A completed assessment showing the risk score, risk level, and the per-category score breakdown. |
-| `github-pr-comment.png` | README GitHub Action section | The ChangeGuard report posted as a pull-request comment with a failed check. |
+| `github-pr-comment.png` | README GitHub Action section | The PreflightOps report posted as a pull-request comment with a failed check. |
 
 ## How to capture
 
@@ -27,7 +27,7 @@ the bundled placeholder example data. The steps below explain how to regenerate 
    - the results / score breakdown (for `risk-results.png`).
 
 4. For `github-pr-comment.png`, open a pull request in a repo that uses the
-   ChangeGuard Action and screenshot the posted report comment.
+   PreflightOps Action and screenshot the posted report comment.
 
 ## Guidelines
 

@@ -1,4 +1,4 @@
-"""ChangeGuard Streamlit application.
+"""PreflightOps Streamlit application.
 
 Run with:
     streamlit run app.py --server.port 5000
@@ -14,9 +14,9 @@ try:
 except ImportError:  # pragma: no cover - pandas is in requirements
     HAS_PANDAS = False
 
-from changeguard.risk_engine import assess_risk, SOURCE_ORDER
-from changeguard.report import generate_markdown_report, generate_json_report
-from changeguard import sample_data
+from preflightops.risk_engine import assess_risk, SOURCE_ORDER
+from preflightops.report import generate_markdown_report, generate_json_report
+from preflightops import sample_data
 
 
 # ---------------------------------------------------------------------------
@@ -239,7 +239,7 @@ def _render_grouped_rules(triggered: list) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="ChangeGuard", page_icon="🛡️", layout="wide")
+    st.set_page_config(page_title="PreflightOps", page_icon="🛡️", layout="wide")
 
     # Initialize editor state.
     st.session_state.setdefault("services_input", DEFAULT_SERVICES_YAML)
@@ -248,12 +248,12 @@ def main() -> None:
     st.session_state.setdefault("k8s_input", "")
 
     # ----- Header -----
-    st.title("ChangeGuard")
-    st.subheader("Pre-deployment risk assessment for SRE and Platform teams")
-    st.caption("Detect risky production changes before they become incidents.")
+    st.title("PreflightOps")
+    st.subheader("Preflight checks for risky production changes")
+    st.caption("Before production changes take off, check the operational risk.")
 
     st.write(
-        "ChangeGuard reviews service ownership, production criticality, rollback "
+        "PreflightOps reviews service ownership, production criticality, rollback "
         "readiness, monitoring plans, validation steps, Terraform risk signals, and "
         "Kubernetes deployment risk before a change goes live."
     )
@@ -265,7 +265,7 @@ def main() -> None:
             "config updates, and infrastructure edits. Teams often have CI/CD, "
             "Terraform, Kubernetes, and dashboards, yet still judge change risk "
             "by gut feel in a rushed review.\n\n"
-            "**ChangeGuard makes that judgement explicit.** It turns your service "
+            "**PreflightOps makes that judgement explicit.** It turns your service "
             "catalog and change request into a clear risk score, a risk level, and "
             "a list of the exact gaps to fix — *before* the change ships. The result "
             "is fewer surprise incidents, faster and more consistent change reviews, "
@@ -275,7 +275,7 @@ def main() -> None:
     # ----- Example selector -----
     st.markdown("### Start here: load an example scenario")
     st.caption(
-        "New to ChangeGuard? Load a ready-made scenario to see how scoring works, "
+        "New to PreflightOps? Load a ready-made scenario to see how scoring works, "
         "then edit the inputs below to match your own change."
     )
     ex_low, ex_high, ex_critical = st.columns(3)
@@ -328,7 +328,7 @@ def main() -> None:
             help=(
                 "YAML with a top-level `change:` object. Include the target `service` "
                 "(must match a service above), `environment`, `change_type`, plus the "
-                "rollback_plan, monitoring_plan, and validation_plan that ChangeGuard "
+                "rollback_plan, monitoring_plan, and validation_plan that PreflightOps "
                 "checks for completeness."
             ),
         )
@@ -343,7 +343,7 @@ def main() -> None:
             placeholder="Paste `terraform plan` output or a diff here...",
             on_change=_clear_result,
             help=(
-                "Free-form text from `terraform plan` or a diff. ChangeGuard scans it "
+                "Free-form text from `terraform plan` or a diff. PreflightOps scans it "
                 "for risky signals such as IAM changes, security groups, database "
                 "instances, and destroy/delete actions."
             ),
@@ -357,7 +357,7 @@ def main() -> None:
             placeholder="Paste Kubernetes manifest YAML here...",
             on_change=_clear_result,
             help=(
-                "Paste one or more Kubernetes manifests. ChangeGuard scans for risky "
+                "Paste one or more Kubernetes manifests. PreflightOps scans for risky "
                 "kinds (Ingress, Secret, NetworkPolicy, StatefulSet), LoadBalancer "
                 "exposure, replicas set to zero, and Deployments missing readiness or "
                 "liveness probes."
@@ -486,14 +486,14 @@ def _render_results(result: dict) -> None:
     dl_md.download_button(
         "Download Markdown Report",
         data=markdown_report,
-        file_name="changeguard-report.md",
+        file_name="preflightops-report.md",
         mime="text/markdown",
         use_container_width=True,
     )
     dl_json.download_button(
         "Download JSON Report",
         data=json_report,
-        file_name="changeguard-report.json",
+        file_name="preflightops-report.json",
         mime="application/json",
         use_container_width=True,
     )
