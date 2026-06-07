@@ -1,21 +1,46 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 .eggs/
-build/
 dist/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Virtual environments
+build/
 .venv/
 venv/
 env/
+ENV/
 
-# OS / editor
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS / editors
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+
+# Logs / reports generated locally
+*.log
+report.md
+report.json
+changeguard-report.md
+changeguard-report.json
+
+# Local Replit / generated workspace files
+.replit
+.replitignore
+.cache/
+.local/
+attached_assets/
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
