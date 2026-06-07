@@ -4,6 +4,8 @@ Run with:
     streamlit run app.py --server.port 5000
 """
 
+import os
+
 import yaml
 import streamlit as st
 
@@ -16,7 +18,21 @@ except ImportError:  # pragma: no cover - pandas is in requirements
 
 from preflightops.risk_engine import assess_risk, SOURCE_ORDER
 from preflightops.report import generate_markdown_report, generate_json_report
+from preflightops.ticket import generate_ticket_markdown
 from preflightops import sample_data
+from preflightops.integrations import (
+    push_to_servicenow,
+    push_to_jira,
+    correlation_id,
+    IntegrationError,
+    SERVICENOW_INSTANCE_URL_ENV,
+    SERVICENOW_USER_ENV,
+    SERVICENOW_PASSWORD_ENV,
+    JIRA_BASE_URL_ENV,
+    JIRA_EMAIL_ENV,
+    JIRA_API_TOKEN_ENV,
+    JIRA_PROJECT_ENV,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -87,11 +103,13 @@ def _load_example(kind: str) -> None:
         st.session_state.k8s_input = sample_data.RISKY_K8S_TEXT
     # Clear any stale result so the UI reflects the freshly loaded example.
     st.session_state.pop("result", None)
+    st.session_state.pop("integration_status", None)
 
 
 def _clear_result() -> None:
     """Drop a previous result whenever an input changes, to avoid drift."""
     st.session_state.pop("result", None)
+    st.session_state.pop("integration_status", None)
 
 
 LEVEL_RENDERERS = {
@@ -420,6 +438,9 @@ def _run_assessment() -> None:
         return
 
     st.session_state["result"] = result
+    st.session_state["change_doc"] = change
+    # A fresh assessment invalidates any previous push outcome.
+    st.session_state.pop("integration_status", None)
 
 
 def _warn_missing_fields(change_doc) -> None:
@@ -436,6 +457,224 @@ def _warn_missing_fields(change_doc) -> None:
             + ", ".join(missing)
             + ". Proceeding with the assessment anyway."
         )
+
+
+def _servicenow_status(env) -> tuple:
+    """Return ``(instance_url, missing_vars)`` for the ServiceNow integration.
+
+    ``missing_vars`` lists the environment variables that still need to be set
+    for a live push to work. The integration is configured only when this list
+    is empty. Credentials are never read into the UI — only their presence is
+    checked here.
+    """
+    instance_url = (env.get(SERVICENOW_INSTANCE_URL_ENV) or "").strip()
+    missing = []
+    if not instance_url:
+        missing.append(SERVICENOW_INSTANCE_URL_ENV)
+    if not env.get(SERVICENOW_USER_ENV):
+        missing.append(SERVICENOW_USER_ENV)
+    if not env.get(SERVICENOW_PASSWORD_ENV):
+        missing.append(SERVICENOW_PASSWORD_ENV)
+    return instance_url, missing
+
+
+def _jira_status(env) -> tuple:
+    """Return ``(base_url, missing_vars)`` for the Jira integration."""
+    base_url = (env.get(JIRA_BASE_URL_ENV) or "").strip()
+    missing = []
+    if not base_url:
+        missing.append(JIRA_BASE_URL_ENV)
+    if not env.get(JIRA_EMAIL_ENV):
+        missing.append(JIRA_EMAIL_ENV)
+    if not env.get(JIRA_API_TOKEN_ENV):
+        missing.append(JIRA_API_TOKEN_ENV)
+    if not env.get(JIRA_PROJECT_ENV):
+        missing.append(JIRA_PROJECT_ENV)
+    return base_url, missing
+
+
+def _send_to_servicenow(result, change_doc, ticket_markdown, env=None) -> dict:
+    """Push the change summary to ServiceNow, sourcing the URL from the env.
+
+    Raises :class:`IntegrationError` if the integration is not fully configured
+    or the API call fails. The same Markdown summary shown in the UI is reused
+    as the record body so the live record matches the offline summary.
+    """
+    env = os.environ if env is None else env
+    instance_url, missing = _servicenow_status(env)
+    if missing:
+        raise IntegrationError(
+            "ServiceNow integration is not configured. Set: " + ", ".join(missing)
+        )
+    return push_to_servicenow(instance_url, result, change_doc, ticket_markdown, env)
+
+
+def _send_to_jira(result, change_doc, ticket_markdown, env=None) -> dict:
+    """Push the change summary to Jira, sourcing the base URL from the env."""
+    env = os.environ if env is None else env
+    base_url, missing = _jira_status(env)
+    if missing:
+        raise IntegrationError(
+            "Jira integration is not configured. Set: " + ", ".join(missing)
+        )
+    return push_to_jira(base_url, result, change_doc, ticket_markdown, env)
+
+
+def _handle_push(
+    system: str, sender, result, change_doc, ticket_markdown, confirmed: bool
+) -> None:
+    """Run a push and record its outcome in session state for display.
+
+    The push only happens when ``confirmed`` is truthy. Without an explicit
+    confirmation, no network call is made and a reminder is recorded instead, so
+    a single accidental click never reaches a production change-management system.
+    """
+    statuses = st.session_state.setdefault("integration_status", {})
+    if not confirmed:
+        statuses[system] = {
+            "ok": False,
+            "message": (
+                "Confirm the target and action above before sending. "
+                "No API call was made."
+            ),
+        }
+        return
+    try:
+        info = sender(result, change_doc, ticket_markdown)
+    except IntegrationError as exc:
+        statuses[system] = {"ok": False, "message": str(exc)}
+        return
+    statuses[system] = {"ok": True, "info": info}
+
+
+def _render_push_outcome(system: str) -> None:
+    """Render the success/error of the most recent push for ``system``."""
+    statuses = st.session_state.get("integration_status", {})
+    status = statuses.get(system)
+    if not status:
+        return
+    label = "ServiceNow" if system == "servicenow" else "Jira"
+    if not status.get("ok"):
+        st.error(f"{label} push failed: {status.get('message', 'Unknown error.')}")
+        return
+    info = status.get("info", {})
+    reference = info.get("number") or info.get("key") or "(unknown)"
+    action = info.get("action", "submitted")
+    url = info.get("url", "")
+    message = f"{label} change record {action}: **{reference}**"
+    if url:
+        message += f" ([open record]({url}))"
+    st.success(message)
+
+
+def _render_integrations(result, change_doc, ticket_markdown, env=None) -> None:
+    """Render the opt-in 'Send to ServiceNow / Jira' live-integration controls.
+
+    The app stays fully offline when neither integration is configured: no
+    network call is made and no button is shown — only guidance on which
+    environment variables to set. When a system is configured, a button creates
+    or updates the matching change record using the generated summary.
+    """
+    env = os.environ if env is None else env
+
+    st.subheader("Send to ServiceNow / Jira (live)")
+    st.caption(
+        "Opt-in: create or update a real ServiceNow change_request and/or Jira "
+        "issue from the summary above. Credentials and instance URLs come from "
+        "environment variables only — nothing is entered or stored here."
+    )
+
+    _, sn_missing = _servicenow_status(env)
+    _, jira_missing = _jira_status(env)
+
+    if sn_missing and jira_missing:
+        st.info(
+            "No live integration is configured, so PreflightOps stays fully "
+            "offline. To enable ServiceNow, set "
+            f"`{SERVICENOW_INSTANCE_URL_ENV}`, `{SERVICENOW_USER_ENV}`, and "
+            f"`{SERVICENOW_PASSWORD_ENV}`. To enable Jira, set "
+            f"`{JIRA_BASE_URL_ENV}`, `{JIRA_EMAIL_ENV}`, `{JIRA_API_TOKEN_ENV}`, "
+            f"and `{JIRA_PROJECT_ENV}`."
+        )
+        return
+
+    sn_url, _ = _servicenow_status(env)
+    jira_url, _ = _jira_status(env)
+
+    col_sn, col_jira = st.columns(2)
+
+    with col_sn:
+        if sn_missing:
+            st.caption(
+                "ServiceNow not configured. Set: " + ", ".join(sn_missing)
+            )
+        else:
+            _render_push_control(
+                system="servicenow",
+                label="ServiceNow",
+                record_kind="change_request",
+                target_url=sn_url,
+                sender=_send_to_servicenow,
+                result=result,
+                change_doc=change_doc,
+                ticket_markdown=ticket_markdown,
+            )
+
+    with col_jira:
+        if jira_missing:
+            st.caption("Jira not configured. Set: " + ", ".join(jira_missing))
+        else:
+            _render_push_control(
+                system="jira",
+                label="Jira",
+                record_kind="issue",
+                target_url=jira_url,
+                sender=_send_to_jira,
+                result=result,
+                change_doc=change_doc,
+                ticket_markdown=ticket_markdown,
+            )
+
+
+def _render_push_control(
+    system, label, record_kind, target_url, sender, result, change_doc,
+    ticket_markdown,
+) -> None:
+    """Render a confirm-then-send control for one live integration.
+
+    A single click never makes the API call. The user must first review the
+    target instance and the create-or-update action (keyed off the deterministic
+    correlation id) and tick an explicit confirmation checkbox; only then does
+    the Send button perform the live push. Leaving the box unticked — the
+    implicit "cancel" — makes no network call at all.
+    """
+    corr = correlation_id(result, change_doc)
+    confirm_key = f"confirm_{system}"
+
+    with st.expander(f"Review before sending to {label}", expanded=False):
+        st.markdown(
+            f"This makes a **live API call** to `{target_url}` and will "
+            f"**create or update** a {label} {record_kind}.\n\n"
+            f"- **Target instance:** `{target_url}`\n"
+            f"- **Correlation id:** `{corr}`\n"
+            f"- **Action:** a {record_kind} matching this correlation id is "
+            f"updated if one already exists, otherwise a new one is created."
+        )
+        st.checkbox(
+            f"I confirm sending this change to {label} at {target_url}",
+            key=confirm_key,
+        )
+
+    confirmed = bool(st.session_state.get(confirm_key))
+    if st.button(
+        f"Send to {label}",
+        key=f"send_{system}",
+        use_container_width=True,
+        disabled=not confirmed,
+        help=None if confirmed else "Confirm the details above to enable sending.",
+    ):
+        _handle_push(system, sender, result, change_doc, ticket_markdown, confirmed)
+    _render_push_outcome(system)
 
 
 def _render_results(result: dict) -> None:
@@ -501,6 +740,30 @@ def _render_results(result: dict) -> None:
         mime="application/json",
         use_container_width=True,
     )
+
+    # ServiceNow / Jira-ready change ticket summary.
+    # This is a copy/paste-ready Markdown summary, not a real ServiceNow/Jira
+    # API integration (no network calls, tokens, or external services).
+    st.subheader("ServiceNow / Jira-ready ticket summary")
+    st.caption(
+        "Generate a copy/paste-friendly Markdown change summary for ServiceNow, "
+        "Jira, CAB reviews, or internal approval workflows. This does not call "
+        "any ServiceNow or Jira API."
+    )
+    change_doc = st.session_state.get("change_doc")
+    ticket_markdown = generate_ticket_markdown(result, change_doc)
+    with st.expander("Ticket summary preview", expanded=False):
+        st.code(ticket_markdown, language="markdown")
+    st.download_button(
+        "Download Change Ticket Summary",
+        data=ticket_markdown,
+        file_name="preflightops-ticket.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+
+    # Opt-in live ServiceNow / Jira integration.
+    _render_integrations(result, change_doc, ticket_markdown)
 
 
 if __name__ == "__main__":

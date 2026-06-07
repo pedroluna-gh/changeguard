@@ -168,6 +168,154 @@ class TestErrorCodes:
 
 
 # ---------------------------------------------------------------------------
+# Live integration pushes require an explicit confirmation
+# ---------------------------------------------------------------------------
+class TestLivePushConfirmation:
+    def _base_args(self, tmp_path):
+        services = _write_yaml(tmp_path / "services.yaml", sample_data.HIGH_RISK_SERVICES)
+        change = _write_yaml(tmp_path / "change.yaml", sample_data.HIGH_RISK_CHANGE)
+        output = tmp_path / "report.md"
+        return [
+            "--services", services,
+            "--change", change,
+            "--output", str(output),
+        ]
+
+    def test_declining_makes_no_api_call(self, tmp_path, capsys, monkeypatch):
+        calls = []
+        monkeypatch.setattr(
+            cli, "push_to_servicenow",
+            lambda *a, **k: calls.append(a) or {},
+        )
+        # Interactive terminal that answers "no".
+        monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: True)
+        monkeypatch.setattr("builtins.input", lambda *a: "n")
+
+        code = cli.main(
+            self._base_args(tmp_path) + ["--servicenow", "https://dev.service-now.com"]
+        )
+
+        assert code == 0  # HIGH risk is not CRITICAL; clean exit
+        assert calls == []  # no network call made
+        out = capsys.readouterr().out
+        assert "About to push a change record to ServiceNow" in out
+        assert "Skipping ServiceNow push" in out
+
+    def test_confirming_makes_the_api_call(self, tmp_path, capsys, monkeypatch):
+        calls = []
+
+        def fake_push(instance_url, result, change_doc, ticket_markdown):
+            calls.append(instance_url)
+            return {
+                "system": "servicenow",
+                "action": "created",
+                "number": "CHG0012345",
+                "sys_id": "abc",
+                "url": "https://dev.service-now.com/x",
+            }
+
+        monkeypatch.setattr(cli, "push_to_servicenow", fake_push)
+        monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: True)
+        monkeypatch.setattr("builtins.input", lambda *a: "y")
+
+        code = cli.main(
+            self._base_args(tmp_path) + ["--servicenow", "https://dev.service-now.com"]
+        )
+
+        assert code == 0
+        assert calls == ["https://dev.service-now.com"]
+        out = capsys.readouterr().out
+        assert "ServiceNow change record created: CHG0012345" in out
+
+    def test_yes_flag_skips_prompt(self, tmp_path, monkeypatch):
+        calls = []
+        monkeypatch.setattr(
+            cli, "push_to_jira",
+            lambda *a, **k: calls.append(a[0]) or {
+                "system": "jira",
+                "action": "created",
+                "key": "OPS-1",
+                "url": "https://x/browse/OPS-1",
+            },
+        )
+
+        def _no_input(*a):
+            raise AssertionError("input() should not be called with --yes")
+
+        monkeypatch.setattr("builtins.input", _no_input)
+
+        code = cli.main(
+            self._base_args(tmp_path)
+            + ["--jira", "https://org.atlassian.net", "--yes"]
+        )
+
+        assert code == 0
+        assert calls == ["https://org.atlassian.net"]
+
+    def test_no_tty_without_yes_skips_push(self, tmp_path, capsys, monkeypatch):
+        calls = []
+        monkeypatch.setattr(
+            cli, "push_to_servicenow",
+            lambda *a, **k: calls.append(a) or {},
+        )
+        # Non-interactive: no terminal attached and --yes not given.
+        monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: False)
+
+        def _no_input(*a):
+            raise AssertionError("input() should not be called without a TTY")
+
+        monkeypatch.setattr("builtins.input", _no_input)
+
+        code = cli.main(
+            self._base_args(tmp_path) + ["--servicenow", "https://dev.service-now.com"]
+        )
+
+        assert code == 0  # clean exit, offline path unaffected
+        assert calls == []
+        err = capsys.readouterr().err
+        assert "no interactive terminal" in err
+
+    def test_offline_path_does_not_prompt(self, tmp_path, monkeypatch):
+        # Without --servicenow / --jira there is no prompt and no push.
+        def _no_input(*a):
+            raise AssertionError("input() should not be called on the offline path")
+
+        monkeypatch.setattr("builtins.input", _no_input)
+        ticket_output = tmp_path / "ticket.md"
+        code = cli.main(
+            self._base_args(tmp_path) + ["--ticket-output", str(ticket_output)]
+        )
+        assert code == 0
+        assert ticket_output.exists()
+
+    def test_preview_shows_target_and_correlation_id(self, tmp_path, capsys, monkeypatch):
+        from preflightops import integrations
+
+        monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: True)
+        monkeypatch.setattr("builtins.input", lambda *a: "n")
+
+        services = _write_yaml(tmp_path / "services.yaml", sample_data.HIGH_RISK_SERVICES)
+        change_doc = sample_data.HIGH_RISK_CHANGE
+        change = _write_yaml(tmp_path / "change.yaml", change_doc)
+        output = tmp_path / "report.md"
+
+        cli.main(
+            [
+                "--services", services,
+                "--change", change,
+                "--output", str(output),
+                "--jira", "https://org.atlassian.net",
+            ]
+        )
+
+        out = capsys.readouterr().out
+        assert "https://org.atlassian.net" in out
+        # The deterministic correlation id is shown in the preview.
+        assert "Correlation id:" in out
+        assert "updated if it exists" in out
+
+
+# ---------------------------------------------------------------------------
 # The CLI also works against the shipped example files end to end
 # ---------------------------------------------------------------------------
 def test_cli_with_example_files(tmp_path):

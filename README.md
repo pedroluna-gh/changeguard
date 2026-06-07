@@ -4,6 +4,14 @@
 
 PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
+It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no AI — the risk assessment runs entirely locally. Outbound calls happen only when you explicitly opt in to the [ServiceNow / Jira integrations](#opt-in-push-straight-into-servicenow--jira).
+
+[![CI](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
+
+![PreflightOps web app](docs/screenshots/app-overview.png)
+
 ## Try it in a pull request
 
 ```yaml
@@ -17,13 +25,6 @@ PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platf
 ```
 
 ---
-It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
-
-[![CI](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/preflightops/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
-
-![PreflightOps web app](docs/screenshots/app-overview.png)
 
 ## The problem
 
@@ -147,6 +148,139 @@ env:
 
 Optional inputs are skipped automatically when the file is absent. The workflow needs `pull-requests: write` permission to post the comment (already declared in the example file).
 
+## ServiceNow / Jira-ready change summaries
+
+PreflightOps can generate a copy/paste-friendly Markdown change summary for ServiceNow, Jira, CAB reviews, or internal approval workflows.
+
+It does **not** require ServiceNow or Jira API access, authentication, tokens, or any network call. It simply turns the risk assessment into a structured change-record-style ticket you can paste into your change-management tool of choice.
+
+Add `--ticket-output` to write the summary alongside the normal report:
+
+```bash
+preflightops \
+  --services examples/services-critical-risk.yaml \
+  --change examples/change-critical-risk.yaml \
+  --terraform examples/terraform-critical.txt \
+  --k8s examples/k8s-risk.yaml \
+  --output report.md \
+  --ticket-output ticket.md
+```
+
+The ticket includes the change title, service, environment, business impact, risk level and score, a risk-level-aware approval recommendation and deployment window, the rollback / monitoring / validation plans (with fallback text when missing), the risk findings, and recommended actions. See a full sample in [`examples/ticket-critical.md`](examples/ticket-critical.md) and the [ticket generator guide](docs/TICKET_GENERATOR.md).
+
+> `--ticket-output` is a copy/paste summary generator: it makes **no network calls** and needs **no credentials**.
+
+### Customize the ticket layout
+
+The change summary uses a built-in layout, but you can tailor it with
+`--ticket-template` — a YAML or JSON file that controls the section order,
+headings, and the approval / deployment-window wording. The template shapes the
+summary everywhere it is produced (the `--ticket-output` file and any opt-in
+ServiceNow / Jira push below), and any sections you leave out fall back to the
+built-in defaults.
+
+```bash
+preflightops \
+  --services examples/services-critical-risk.yaml \
+  --change examples/change-critical-risk.yaml \
+  --output report.md \
+  --ticket-output ticket.md \
+  --ticket-template my-cab-template.yaml
+```
+
+### Opt-in: push straight into ServiceNow / Jira
+
+If you want the assessment to flow directly into your change-management tool, add
+the opt-in `--servicenow` and/or `--jira` flags. These take the **non-secret**
+instance/base URL; every credential is read from the environment only and is
+never accepted on the command line or hard-coded.
+
+```bash
+# Credentials via environment/secrets only — never on the command line.
+export SERVICENOW_USER=...        # ServiceNow
+export SERVICENOW_PASSWORD=...
+export JIRA_EMAIL=...             # Jira
+export JIRA_API_TOKEN=...
+export JIRA_PROJECT_KEY=OPS
+
+preflightops \
+  --services examples/services-critical-risk.yaml \
+  --change examples/change-critical-risk.yaml \
+  --output report.md \
+  --servicenow https://dev12345.service-now.com \
+  --jira https://your-org.atlassian.net
+```
+
+This **creates or updates** a ServiceNow `change_request` and/or a Jira issue
+using the generated change summary as the record body. A second run for the same
+change updates the existing record instead of creating a duplicate (a
+deterministic correlation id is stored on the record). Set `JIRA_ISSUE_TYPE` to
+override the default issue type (`Task`).
+
+Before any live push, PreflightOps prints the target instance/base URL, the
+deterministic correlation id, and that a matching record is updated if it exists
+(otherwise created), then asks for an explicit confirmation — so a typo or a
+copy-pasted command never silently reaches a production change-management system.
+Pass `--yes` (alias `--assume-yes`) to skip the prompt for CI/automation. When
+there is no interactive terminal and `--yes` was not given, the push is skipped
+(no API call) and the run exits cleanly.
+
+The integration is **strictly opt-in**: when you omit both flags, PreflightOps
+makes no outbound network calls and the offline `--ticket-output` path keeps
+working exactly as before. An integration misconfiguration (missing credentials,
+bad URL, API error) is reported to stderr and exits non-zero **without** touching
+the offline report paths.
+
+### Opt-in: push from the GitHub Action
+
+The bundled [PR risk gate](#github-action-pr-risk-gate) can run the same opt-in
+push automatically, so the ServiceNow `change_request` and/or Jira issue is
+created or updated as part of the pull-request check.
+
+It stays **off by default**: the Action behaves exactly as it does today until
+you set the non-secret instance/base URL in the workflow's `env` block. Set
+either or both:
+
+```yaml
+env:
+  PREFLIGHTOPS_SERVICENOW: https://dev12345.service-now.com  # enables --servicenow
+  PREFLIGHTOPS_JIRA: https://your-org.atlassian.net          # enables --jira
+```
+
+Then add the credentials as **GitHub repository secrets** (Settings → Secrets and
+variables → Actions). The workflow passes them to the CLI through the environment
+only — never on the command line:
+
+| Secret | Used by | Required |
+| --- | --- | --- |
+| `SERVICENOW_USER` | ServiceNow | when `PREFLIGHTOPS_SERVICENOW` is set |
+| `SERVICENOW_PASSWORD` | ServiceNow | when `PREFLIGHTOPS_SERVICENOW` is set |
+| `JIRA_EMAIL` | Jira | when `PREFLIGHTOPS_JIRA` is set |
+| `JIRA_API_TOKEN` | Jira | when `PREFLIGHTOPS_JIRA` is set |
+| `JIRA_PROJECT_KEY` | Jira | when `PREFLIGHTOPS_JIRA` is set |
+| `JIRA_ISSUE_TYPE` | Jira | optional (defaults to `Task`) |
+
+Leave the URLs blank to keep both integrations disabled — no secrets are needed
+and no network call is made. Because re-runs are matched by a deterministic
+correlation id, repeated pushes for the same change update the existing record
+instead of creating duplicates.
+
+### Opt-in: send from the web app
+
+The Streamlit app exposes the same opt-in integration. After running an
+assessment, the **Send to ServiceNow / Jira (live)** section lets you create or
+update a real ServiceNow `change_request` and/or Jira issue from the generated
+summary. To prevent an accidental push to a production system, each send is
+gated behind a **Review before sending** step: expand it to see the target
+instance/base URL and the create-or-update action, tick the confirmation
+checkbox, and only then does the **Send** button become enabled.
+
+As with the CLI, credentials are read from the environment only (the same
+`SERVICENOW_USER` / `SERVICENOW_PASSWORD` and `JIRA_EMAIL` / `JIRA_API_TOKEN` /
+`JIRA_PROJECT_KEY` variables). The send controls stay hidden — with guidance on
+which variables to set — until the integration is configured, so the app makes
+no outbound network calls unless you opt in.
+
 ## Example output
 
 A `HIGH`-risk production deployment produces a report like this:
@@ -239,14 +373,14 @@ Contributions are welcome — bug reports, new risk rules, scanner signals, and 
 1. Fork the repo and create a feature branch.
 2. Make your change and **add or update tests** under `tests/`.
 3. Run `pytest` and make sure the full suite passes.
-4. Keep the project's constraints intact: **no database, no login, no external API calls, no AI.**
+4. Keep the project's constraints intact: **no database, no login, no AI, and no network calls by default** — the only outbound calls are the explicitly opt-in ServiceNow / Jira integrations.
 5. Open a pull request with a clear description of the change and the risk it addresses.
 
 New risk rules should be transparent and explainable: a stable rule id, a severity, a point value, and a human-readable description. Please open an issue first for larger changes so we can align on direction.
 
 ## Security
 
-PreflightOps is a **local, offline** tool: it makes no outbound network calls, stores no data, and requires no credentials. Your service catalogs, change requests, Terraform plans, and Kubernetes manifests never leave your machine or CI runner.
+PreflightOps is **offline by default**: the risk assessment makes no outbound network calls, stores no data, and requires no credentials. Your service catalogs, change requests, Terraform plans, and Kubernetes manifests never leave your machine or CI runner — unless you explicitly enable the opt-in ServiceNow / Jira integrations, which send the generated change summary to the instance/base URL you configure using credentials read from the environment only.
 
 - Treat any input you paste as sensitive — Terraform plans and Kubernetes manifests can contain infrastructure details. The bundled examples use placeholder data only.
 - PreflightOps is a **decision-support aid, not a security boundary.** It surfaces risk signals to inform human review; it does not guarantee a change is safe.
@@ -254,15 +388,19 @@ PreflightOps is a **local, offline** tool: it makes no outbound network calls, s
 
 ## Roadmap
 
+- Copy/paste ServiceNow/Jira-ready change ticket summary (`--ticket-output`) — **available now**
+- Opt-in ServiceNow API integration and Jira API integration (`--servicenow` / `--jira`), from the CLI, GitHub Action, and web app — **available now**
+- Configurable / custom ticket templates (`--ticket-template`) — **available now**
 - Real Terraform plan JSON parser
 - Real Kubernetes YAML object parser
-- ServiceNow / Jira integration
 - PagerDuty / Opsgenie incident-history connector
 - Datadog / Grafana dashboard link validation
 - Static HTML dashboard export
 - Policy-as-code approval workflows
 
-## GitHub topics
+## Suggested GitHub topics
+
+When publishing, add topics like:
 
 `sre` · `devops` · `platform-engineering` · `site-reliability-engineering` · `change-management` · `risk-assessment` · `production-readiness` · `rollback` · `observability` · `terraform` · `kubernetes` · `ci-cd` · `pre-deployment` · `streamlit` · `python`
 

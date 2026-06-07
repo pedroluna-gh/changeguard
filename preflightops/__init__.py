@@ -14,6 +14,13 @@ from .validators import (
 )
 from .scanners import scan_terraform, scan_kubernetes
 from .report import generate_markdown_report, generate_json_report
+from .ticket import generate_ticket_markdown
+from .integrations import (
+    push_to_servicenow,
+    push_to_jira,
+    correlation_id,
+    IntegrationError,
+)
 
 __all__ = [
     "assess_risk",
@@ -28,6 +35,11 @@ __all__ = [
     "scan_kubernetes",
     "generate_markdown_report",
     "generate_json_report",
+    "generate_ticket_markdown",
+    "push_to_servicenow",
+    "push_to_jira",
+    "correlation_id",
+    "IntegrationError",
 ]
 
 __version__ = "0.1.0"

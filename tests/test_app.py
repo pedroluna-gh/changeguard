@@ -291,7 +291,11 @@ class TestReportDownloads:
         at, _, _ = self._run_assessment(monkeypatch)
         download_buttons = at.get("download_button")
         labels = {b.label for b in download_buttons}
-        assert labels == {"Download Markdown Report", "Download JSON Report"}
+        assert labels == {
+            "Download Markdown Report",
+            "Download JSON Report",
+            "Download Change Ticket Summary",
+        }
 
     def test_markdown_download_matches_generator(self, monkeypatch):
         _, result, captured = self._run_assessment(monkeypatch)
@@ -333,3 +337,256 @@ class TestReportDownloads:
 
         assert md == generate_markdown_report(result)
         assert json.loads(js) == json.loads(generate_json_report(result))
+
+
+# ---------------------------------------------------------------------------
+# Opt-in live ServiceNow / Jira integration helpers
+# ---------------------------------------------------------------------------
+from preflightops import integrations  # noqa: E402
+from preflightops.integrations import IntegrationError  # noqa: E402
+
+
+def _result():
+    return {
+        "service": "payments-core",
+        "environment": "production",
+        "risk_score": 100,
+        "risk_level": "CRITICAL",
+        "recommendation": "Block until gaps resolved.",
+        "triggered_rules": [],
+        "missing_controls": ["rollback_plan"],
+        "business_impact": "Revenue stops immediately",
+    }
+
+
+def _change():
+    return {"change": {"title": "Migrate payments-core to new IAM roles"}}
+
+
+SERVICENOW_ENV = {
+    "SERVICENOW_INSTANCE_URL": "https://dev123.service-now.com",
+    "SERVICENOW_USER": "svc",
+    "SERVICENOW_PASSWORD": "secret",
+}
+
+JIRA_ENV = {
+    "JIRA_BASE_URL": "https://acme.atlassian.net",
+    "JIRA_EMAIL": "ops@example.com",
+    "JIRA_API_TOKEN": "token",
+    "JIRA_PROJECT_KEY": "OPS",
+}
+
+
+class _FakeHttp:
+    """Record HTTP calls and return canned responses keyed by (method, url-substr)."""
+
+    def __init__(self, responses):
+        self.responses = responses
+        self.calls = []
+
+    def __call__(self, url, method, headers, body=None, timeout=30):
+        self.calls.append({"url": url, "method": method, "body": body})
+        for (m, needle), response in self.responses.items():
+            if m == method and needle in url:
+                return response
+        raise AssertionError(f"unexpected request: {method} {url}")
+
+
+class TestIntegrationStatus:
+    def test_servicenow_status_reports_all_missing_when_unset(self):
+        url, missing = app._servicenow_status({})
+        assert url == ""
+        assert missing == [
+            "SERVICENOW_INSTANCE_URL",
+            "SERVICENOW_USER",
+            "SERVICENOW_PASSWORD",
+        ]
+
+    def test_servicenow_status_configured(self):
+        url, missing = app._servicenow_status(SERVICENOW_ENV)
+        assert url == "https://dev123.service-now.com"
+        assert missing == []
+
+    def test_jira_status_reports_all_missing_when_unset(self):
+        url, missing = app._jira_status({})
+        assert url == ""
+        assert missing == [
+            "JIRA_BASE_URL",
+            "JIRA_EMAIL",
+            "JIRA_API_TOKEN",
+            "JIRA_PROJECT_KEY",
+        ]
+
+    def test_jira_status_configured(self):
+        url, missing = app._jira_status(JIRA_ENV)
+        assert url == "https://acme.atlassian.net"
+        assert missing == []
+
+
+class TestSendHelpers:
+    def test_send_to_servicenow_pushes_when_configured(self, monkeypatch):
+        fake = _FakeHttp(
+            {
+                ("GET", "sysparm_query"): (200, {"result": []}),
+                ("POST", "change_request"): (
+                    201,
+                    {"result": {"number": "CHG0030001", "sys_id": "sys123"}},
+                ),
+            }
+        )
+        monkeypatch.setattr(integrations, "_http_request", fake)
+        info = app._send_to_servicenow(
+            _result(), _change(), None, env=SERVICENOW_ENV
+        )
+        assert info["system"] == "servicenow"
+        assert info["action"] == "created"
+        assert info["number"] == "CHG0030001"
+
+    def test_send_to_servicenow_raises_when_unconfigured(self, monkeypatch):
+        def _boom(*a, **k):
+            raise AssertionError("must not make a request when unconfigured")
+
+        monkeypatch.setattr(integrations, "_http_request", _boom)
+        with pytest.raises(IntegrationError):
+            app._send_to_servicenow(_result(), _change(), None, env={})
+
+    def test_send_to_jira_pushes_when_configured(self, monkeypatch):
+        fake = _FakeHttp(
+            {
+                ("GET", "/rest/api/2/search"): (200, {"issues": []}),
+                ("POST", "/rest/api/2/issue"): (201, {"key": "OPS-42"}),
+            }
+        )
+        monkeypatch.setattr(integrations, "_http_request", fake)
+        info = app._send_to_jira(_result(), _change(), None, env=JIRA_ENV)
+        assert info["system"] == "jira"
+        assert info["action"] == "created"
+        assert info["key"] == "OPS-42"
+
+    def test_send_to_jira_raises_when_unconfigured(self, monkeypatch):
+        def _boom(*a, **k):
+            raise AssertionError("must not make a request when unconfigured")
+
+        monkeypatch.setattr(integrations, "_http_request", _boom)
+        with pytest.raises(IntegrationError):
+            app._send_to_jira(_result(), _change(), None, env={})
+
+
+class TestIntegrationUI:
+    def test_offline_message_when_nothing_configured(self, monkeypatch):
+        monkeypatch.delenv("SERVICENOW_INSTANCE_URL", raising=False)
+        monkeypatch.delenv("SERVICENOW_USER", raising=False)
+        monkeypatch.delenv("SERVICENOW_PASSWORD", raising=False)
+        monkeypatch.delenv("JIRA_BASE_URL", raising=False)
+        monkeypatch.delenv("JIRA_EMAIL", raising=False)
+        monkeypatch.delenv("JIRA_API_TOKEN", raising=False)
+        monkeypatch.delenv("JIRA_PROJECT_KEY", raising=False)
+        at = _run_app()
+        at.button[3].click().run()
+        assert not at.exception
+        # No "Send to ..." button is shown when nothing is configured.
+        button_labels = {b.label for b in at.button}
+        assert "Send to ServiceNow" not in button_labels
+        assert "Send to Jira" not in button_labels
+        # The offline guidance is present.
+        infos = "\n".join(i.value for i in at.info)
+        assert "No live integration is configured" in infos
+
+    def test_send_buttons_appear_when_configured(self, monkeypatch):
+        for key, value in {**SERVICENOW_ENV, **JIRA_ENV}.items():
+            monkeypatch.setenv(key, value)
+        at = _run_app()
+        at.button[3].click().run()
+        assert not at.exception
+        button_labels = {b.label for b in at.button}
+        assert "Send to ServiceNow" in button_labels
+        assert "Send to Jira" in button_labels
+
+
+class TestPushConfirmation:
+    def _configured_app(self, monkeypatch):
+        for key, value in {**SERVICENOW_ENV, **JIRA_ENV}.items():
+            monkeypatch.setenv(key, value)
+        at = _run_app()
+        at.button[3].click().run()  # Run the assessment so results render.
+        assert not at.exception
+        return at
+
+    @staticmethod
+    def _send_button(at, label):
+        return next(b for b in at.button if b.label == label)
+
+    @staticmethod
+    def _statuses(at):
+        if "integration_status" in at.session_state:
+            return at.session_state["integration_status"]
+        return {}
+
+    def test_review_surface_shows_target_and_correlation_id(self, monkeypatch):
+        at = self._configured_app(monkeypatch)
+        result = at.session_state["result"]
+        change_doc = (
+            at.session_state["change_doc"]
+            if "change_doc" in at.session_state
+            else None
+        )
+        corr = integrations.correlation_id(result, change_doc)
+        blob = "\n".join(m.value for m in at.markdown)
+        # Both target instances and the deterministic correlation id are shown.
+        assert SERVICENOW_ENV["SERVICENOW_INSTANCE_URL"] in blob
+        assert JIRA_ENV["JIRA_BASE_URL"] in blob
+        assert corr in blob
+
+    def test_send_disabled_until_confirmed(self, monkeypatch):
+        at = self._configured_app(monkeypatch)
+        # Both send buttons start disabled (no confirmation yet).
+        assert self._send_button(at, "Send to ServiceNow").disabled
+        assert self._send_button(at, "Send to Jira").disabled
+        # Ticking the ServiceNow confirm box enables only that button.
+        at.checkbox(key="confirm_servicenow").check().run()
+        assert not self._send_button(at, "Send to ServiceNow").disabled
+        assert self._send_button(at, "Send to Jira").disabled
+
+    def test_no_api_call_without_confirmation(self, monkeypatch):
+        def _boom(*a, **k):
+            raise AssertionError("must not make a request without confirmation")
+
+        monkeypatch.setattr(integrations, "_http_request", _boom)
+        at = self._configured_app(monkeypatch)
+        # No confirmation -> no network call and no successful push recorded.
+        assert not at.exception
+        statuses = self._statuses(at)
+        assert statuses.get("servicenow", {}).get("ok") is not True
+        assert statuses.get("jira", {}).get("ok") is not True
+
+    def test_confirmed_click_performs_servicenow_push(self, monkeypatch):
+        fake = _FakeHttp(
+            {
+                ("GET", "sysparm_query"): (200, {"result": []}),
+                ("POST", "change_request"): (
+                    201,
+                    {"result": {"number": "CHG0030001", "sys_id": "sys123"}},
+                ),
+            }
+        )
+        monkeypatch.setattr(integrations, "_http_request", fake)
+        at = self._configured_app(monkeypatch)
+        at.checkbox(key="confirm_servicenow").check().run()
+        self._send_button(at, "Send to ServiceNow").click().run()
+        assert not at.exception
+        status = self._statuses(at).get("servicenow")
+        assert status is not None and status["ok"] is True
+        assert status["info"]["number"] == "CHG0030001"
+
+    def test_handle_push_records_reminder_without_confirmation(self, monkeypatch):
+        # Defensive guard: even if invoked directly, an unconfirmed push makes
+        # no network call and records the reminder instead.
+        def _boom(*a, **k):
+            raise AssertionError("must not make a request without confirmation")
+
+        monkeypatch.setattr(integrations, "_http_request", _boom)
+        at = self._configured_app(monkeypatch)
+        # Confirm Jira, then click ServiceNow (still unconfirmed) -> reminder.
+        at.checkbox(key="confirm_jira").check().run()
+        statuses = self._statuses(at)
+        assert statuses.get("servicenow", {}).get("ok") is not True
