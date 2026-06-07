@@ -1,16 +1,23 @@
-services:
-  - name: reporting-api
-    description: Generates internal usage reports
-    owner: data-platform-team
-    criticality: medium
-    tier: tier-3
-    environment: staging
-    cloud_provider: aws
-    runtime: kubernetes
-    runbook: runbooks/reporting-api.md
-    rollback_required: true
-    monitoring_required: true
-    approval_required: false
-    dependencies:
-      - postgres
-    business_impact: Internal reports may be delayed
+change:
+  id: CHG-100
+  title: Update reporting API in staging
+  service: reporting-api
+  environment: staging
+  change_type: deployment
+  requested_by: pedro
+  description: Deploy new reporting API build to staging for validation
+  rollback_plan: >-
+    Redeploy previous container image reporting-api:1.4.2 via the staging
+    pipeline if error rate exceeds 2% within the validation window. Owner:
+    data-platform-team. Estimated rollback time: 5 minutes.
+  monitoring_plan:
+    dashboards:
+      - https://grafana.example.com/d/reporting
+    alerts:
+      - reporting-api-error-rate
+    validation_window: 15 minutes
+    success_criteria:
+      - error rate below 2%
+  validation_plan:
+    - Confirm staging smoke tests pass
+    - Verify a sample report renders correctly
