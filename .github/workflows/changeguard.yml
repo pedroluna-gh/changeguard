@@ -1,0 +1,125 @@
+name: ChangeGuard
+
+# Pull-request risk gate.
+#
+# ChangeGuard reads your change inputs, scores the deployment risk, writes a
+# Markdown report, uploads it as a build artifact, posts it as a PR comment, and
+# fails the build when the assessed risk level is CRITICAL.
+#
+# Edit the file paths in `env` below to point at the inputs in your repository.
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  risk-review:
+    name: Risk review
+    runs-on: ubuntu-latest
+
+    env:
+      # --- Edit these to match your repository ---
+      # How ChangeGuard is installed. Point this at wherever the ChangeGuard
+      # source lives. By default it installs straight from the ChangeGuard repo.
+      # If ChangeGuard ever ships to PyPI you can simply use: changeguard
+      CHANGEGUARD_INSTALL: "git+https://github.com/pedroluna-gh/changeguard.git@main"
+      # Required inputs.
+      CHANGEGUARD_SERVICES: services.yaml
+      CHANGEGUARD_CHANGE: change.yaml
+      # Optional inputs. Leave blank or delete the file to skip them.
+      CHANGEGUARD_TERRAFORM: tfplan.txt
+      CHANGEGUARD_K8S: k8s.yaml
+      # Where the Markdown report is written.
+      CHANGEGUARD_REPORT: changeguard-report.md
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ChangeGuard
+        run: pip install "$CHANGEGUARD_INSTALL"
+
+      - name: Run ChangeGuard risk assessment
+        id: changeguard
+        run: |
+          set -uo pipefail
+
+          args=(--services "$CHANGEGUARD_SERVICES" --change "$CHANGEGUARD_CHANGE")
+
+          if [ -n "${CHANGEGUARD_TERRAFORM:-}" ] && [ -f "$CHANGEGUARD_TERRAFORM" ]; then
+            args+=(--terraform "$CHANGEGUARD_TERRAFORM")
+          fi
+          if [ -n "${CHANGEGUARD_K8S:-}" ] && [ -f "$CHANGEGUARD_K8S" ]; then
+            args+=(--k8s "$CHANGEGUARD_K8S")
+          fi
+
+          args+=(--output "$CHANGEGUARD_REPORT")
+
+          # Capture the exit code so we can still upload the report and comment
+          # on the PR before failing the build on CRITICAL risk.
+          set +e
+          python -m changeguard.cli "${args[@]}"
+          exit_code=$?
+          set -e
+
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Upload risk report
+        if: always() && hashFiles(env.CHANGEGUARD_REPORT) != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: changeguard-report
+          path: ${{ env.CHANGEGUARD_REPORT }}
+
+      - name: Comment risk report on pull request
+        if: always() && github.event_name == 'pull_request' && hashFiles(env.CHANGEGUARD_REPORT) != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- changeguard-report -->';
+            const body = `${marker}\n` + fs.readFileSync(process.env.CHANGEGUARD_REPORT, 'utf8');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number },
+            );
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+      - name: Fail on CRITICAL risk
+        if: always()
+        run: |
+          if [ "${{ steps.changeguard.outputs.exit_code }}" != "0" ]; then
+            echo "ChangeGuard reported CRITICAL risk (exit code ${{ steps.changeguard.outputs.exit_code }})."
+            exit 1
+          fi
+          echo "ChangeGuard risk check passed."
