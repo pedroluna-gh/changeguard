@@ -10,8 +10,19 @@ It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitH
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-3776ab?logo=python&logoColor=white)](#requirements)
 
-<!-- Add a hero screenshot of the Streamlit app here, e.g.: -->
-<!-- ![PreflightOps web app](docs/screenshots/app-overview.png) -->
+![PreflightOps web app](docs/screenshots/app-overview.png)
+
+## Try it in a pull request
+
+```yaml
+- uses: pedroluna-gh/preflightops@v0.1.0
+  with:
+    services: services.yaml
+    change: change.yaml
+    terraform: tfplan.txt
+    k8s: k8s.yaml
+    fail-on: critical
+```
 
 ---
 
@@ -58,8 +69,7 @@ preflightops \
   --output report.md
 ```
 
-<!-- Add a screenshot of the risk results / score breakdown here, e.g.: -->
-<!-- ![Risk assessment results](docs/screenshots/results.png) -->
+![PreflightOps risk assessment results](docs/screenshots/risk-results.png)
 
 ## Installation
 
@@ -121,6 +131,8 @@ The CLI prints the score and level, writes a Markdown report to `--output` (and 
 ### GitHub Action (PR risk gate)
 
 PreflightOps ships with a ready-to-use workflow at [`.github/workflows/preflightops.yml`](.github/workflows/preflightops.yml). On every pull request it scores the change, posts the Markdown report as a PR comment (updated in place), uploads it as a build artifact, and **fails the check when the risk level is `CRITICAL`**.
+
+![PreflightOps pull request comment](docs/screenshots/github-pr-comment.png)
 
 Point the workflow at your input files via the `env` block at the top of the file:
 
