@@ -1,0 +1,122 @@
+name: "ChangeGuard"
+  description: "Pre-deployment risk assessment that scores production change risk and can fail the build on critical risk."
+  author: "pedroluna-gh"
+  branding:
+    icon: "shield"
+    color: "red"
+
+  inputs:
+    services:
+      description: "Path to the service catalog YAML file."
+      required: true
+    change:
+      description: "Path to the change request YAML file."
+      required: true
+    terraform:
+      description: "Optional path to a Terraform plan/diff text file."
+      required: false
+      default: ""
+    k8s:
+      description: "Optional path to a Kubernetes manifest YAML file."
+      required: false
+      default: ""
+    output:
+      description: "Path to write the Markdown report."
+      required: false
+      default: "changeguard-report.md"
+    json-output:
+      description: "Path to write the JSON report."
+      required: false
+      default: "changeguard-report.json"
+    fail-on:
+      description: "Minimum risk level that fails the action: none, low, medium, high, or critical."
+      required: false
+      default: "critical"
+    python-version:
+      description: "Python version to set up."
+      required: false
+      default: "3.11"
+
+  outputs:
+    risk-level:
+      description: "Assessed risk level (LOW, MEDIUM, HIGH, CRITICAL)."
+      value: ${{ steps.assess.outputs.risk-level }}
+    risk-score:
+      description: "Assessed risk score (0-100)."
+      value: ${{ steps.assess.outputs.risk-score }}
+    report-path:
+      description: "Path to the generated Markdown report."
+      value: ${{ steps.assess.outputs.report-path }}
+    json-report-path:
+      description: "Path to the generated JSON report."
+      value: ${{ steps.assess.outputs.json-report-path }}
+
+  runs:
+    using: "composite"
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install ChangeGuard
+        shell: bash
+        run: pip install "${{ github.action_path }}"
+
+      - name: Run ChangeGuard risk assessment
+        id: assess
+        shell: bash
+        env:
+          CG_SERVICES: ${{ inputs.services }}
+          CG_CHANGE: ${{ inputs.change }}
+          CG_TERRAFORM: ${{ inputs.terraform }}
+          CG_K8S: ${{ inputs.k8s }}
+          CG_OUTPUT: ${{ inputs.output }}
+          CG_JSON: ${{ inputs.json-output }}
+          CG_FAIL_ON: ${{ inputs.fail-on }}
+        run: |
+          set -uo pipefail
+
+          args=(--services "$CG_SERVICES" --change "$CG_CHANGE")
+          if [ -n "$CG_TERRAFORM" ] && [ -f "$CG_TERRAFORM" ]; then
+            args+=(--terraform "$CG_TERRAFORM")
+          fi
+          if [ -n "$CG_K8S" ] && [ -f "$CG_K8S" ]; then
+            args+=(--k8s "$CG_K8S")
+          fi
+          args+=(--output "$CG_OUTPUT" --json-output "$CG_JSON")
+
+          cli_exit=0
+          changeguard "${args[@]}" || cli_exit=$?
+
+          # Exit code 2 means an input/parse/runtime error: fail hard.
+          if [ "$cli_exit" -eq 2 ]; then
+            echo "::error::ChangeGuard failed to run (exit code 2)."
+            exit 2
+          fi
+
+          level=$(python -c "import json; print(json.load(open('$CG_JSON'))['risk_level'])")
+          score=$(python -c "import json; print(json.load(open('$CG_JSON'))['risk_score'])")
+
+          {
+            echo "risk-level=$level"
+            echo "risk-score=$score"
+            echo "report-path=$CG_OUTPUT"
+            echo "json-report-path=$CG_JSON"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "ChangeGuard risk: $level ($score/100)"
+
+          # Gate the job based on fail-on.
+          declare -A rank=( ["LOW"]=0 ["MEDIUM"]=1 ["HIGH"]=2 ["CRITICAL"]=3 )
+          declare -A threshold=( ["none"]=99 ["low"]=0 ["medium"]=1 ["high"]=2 ["critical"]=3 )
+
+          fail_on=$(echo "$CG_FAIL_ON" | tr '[:upper:]' '[:lower:]')
+          th=${threshold[$fail_on]:-3}
+          lv=${rank[$level]:-0}
+
+          if [ "$lv" -ge "$th" ]; then
+            echo "::error::ChangeGuard risk level $level meets or exceeds fail-on threshold ($CG_FAIL_ON)."
+            exit 1
+          fi
+  
