@@ -27,7 +27,7 @@ jobs:
       # How PreflightOps is installed. Point this at wherever the PreflightOps
       # source lives. By default it installs straight from the PreflightOps repo.
       # If PreflightOps ever ships to PyPI you can simply use: preflightops
-      PREFLIGHTOPS_INSTALL: "git+https://github.com/your-org/preflightops.git@main#subdirectory=preflightops"
+      PREFLIGHTOPS_INSTALL: "git+https://github.com/pedroluna-gh/preflightops.git@main"
       # Required inputs.
       PREFLIGHTOPS_SERVICES: services.yaml
       PREFLIGHTOPS_CHANGE: change.yaml
