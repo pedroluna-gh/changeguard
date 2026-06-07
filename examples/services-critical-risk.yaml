@@ -15,4 +15,4 @@ services:
       - auth-service
       - postgres
       - kms
-    business_impact: Customers cannot be charged and revenue stops immediately
+    business_impact: Customers cannot be charged and revenue stops immediately.
