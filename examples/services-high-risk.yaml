@@ -1,0 +1,18 @@
+services:
+  - name: checkout-api
+    description: Handles customer checkout flow
+    owner: payments-team
+    criticality: high
+    tier: tier-1
+    environment: production
+    cloud_provider: aws
+    runtime: kubernetes
+    runbook: runbooks/checkout-api.md
+    rollback_required: true
+    monitoring_required: true
+    approval_required: true
+    dependencies:
+      - auth-service
+      - postgres
+      - redis
+    business_impact: Customers may be unable to complete checkout

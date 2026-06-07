@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "changeguard"
+version = "0.1.0"
+description = "Pre-deployment risk assessment for SRE, DevOps and Platform Engineering teams."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["sre", "devops", "risk", "deployment", "ci", "terraform", "kubernetes"]
+dependencies = [
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Extras needed only to run the Streamlit web UI (`streamlit run app.py`).
+app = [
+    "streamlit",
+    "pandas",
+]
+# Extras needed only to run the automated test suite (`pytest`).
+test = [
+    "pytest",
+]
+
+[project.scripts]
+changeguard = "changeguard.cli:main"
+
+[tool.setuptools]
+packages = ["changeguard"]

@@ -1,0 +1,18 @@
+# terraform plan output (excerpt)
+
+  # aws_iam_policy.payments_admin will be created
+  + resource "aws_iam_policy" "payments_admin" {
+      + name = "payments-core-admin"
+    }
+
+  # aws_iam_role.payments_core will be updated in-place
+  ~ resource "aws_iam_role" "payments_core" {
+      ~ assume_role_policy = (known after apply)
+    }
+
+  # aws_db_instance.payments will be destroyed
+  - resource "aws_db_instance" "payments" {
+      - identifier = "payments-core-prod"
+    }
+
+Plan: 1 to add, 1 to change, 1 to destroy.

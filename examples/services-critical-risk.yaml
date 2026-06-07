@@ -1,0 +1,18 @@
+services:
+  - name: payments-core
+    description: Authorizes and settles all customer payments
+    owner: payments-team
+    criticality: critical
+    tier: tier-0
+    environment: production
+    cloud_provider: aws
+    runtime: kubernetes
+    runbook: ""
+    rollback_required: true
+    monitoring_required: true
+    approval_required: true
+    dependencies:
+      - auth-service
+      - postgres
+      - kms
+    business_impact: Customers cannot be charged and revenue stops immediately

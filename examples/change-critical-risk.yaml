@@ -1,0 +1,11 @@
+change:
+  id: CHG-300
+  title: Migrate payments-core to new IAM roles and database
+  service: payments-core
+  environment: production
+  change_type: infrastructure
+  requested_by: pedro
+  description: Apply Terraform changes for new IAM roles and replace the payments database instance
+  rollback_plan: ""
+  monitoring_plan: {}
+  validation_plan: []

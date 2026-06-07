@@ -1,0 +1,16 @@
+change:
+  id: CHG-200
+  title: Update checkout API deployment
+  service: checkout-api
+  environment: production
+  change_type: deployment
+  requested_by: pedro
+  description: Deploy new checkout API version with payment timeout improvements
+  rollback_plan: >-
+    Roll back to checkout-api:3.1.0 using the production deploy pipeline if the
+    5xx rate exceeds 1% in the first 30 minutes. Owner: payments-team.
+    Estimated rollback time: 10 minutes.
+  monitoring_plan:
+    dashboards:
+      - https://grafana.example.com/d/checkout
+  validation_plan: []

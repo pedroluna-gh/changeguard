@@ -1,0 +1,4 @@
+# Local development / Streamlit app dependencies.
+# Installs ChangeGuard in editable mode with the Streamlit UI and test extras.
+# Package metadata and dependency versions live in pyproject.toml.
+-e .[app,test]

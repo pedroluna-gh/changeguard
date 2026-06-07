@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-core
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: payments-core
+          image: payments-core:4.0.0
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: payments-core-db
+type: Opaque
+data:
+  password: c3VwZXJzZWNyZXQ=
