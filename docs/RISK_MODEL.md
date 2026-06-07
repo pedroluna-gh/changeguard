@@ -130,7 +130,7 @@ Those are good future roadmap items.
 - Terraform JSON plan parser
 - Kubernetes object parser
 - GitHub PR comment integration
-- ServiceNow / Jira change ticket generator
+- Stronger ServiceNow / Jira workflow mapping and API hardening
 - PagerDuty / Opsgenie incident history lookup
 - Datadog / Prometheus / Grafana monitor validation
 - OpenTelemetry signal validation
