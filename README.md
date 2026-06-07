@@ -11,7 +11,7 @@ ChangeGuard is a pre-deployment risk assessment tool for SRE, DevOps, and Platfo
 
 It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
 
-[![CI](https://img.shields.io/badge/tests-pytest-0a7?logo=pytest)](#running-the-tests)
+[![CI](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](#requirements)
 
