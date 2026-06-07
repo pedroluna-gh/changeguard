@@ -1,18 +1,16 @@
 services:
-  - name: payments-core
-    description: Authorizes and settles all customer payments
-    owner: payments-team
-    criticality: critical
-    tier: tier-0
-    environment: production
+  - name: reporting-api
+    description: Generates internal usage reports
+    owner: data-platform-team
+    criticality: medium
+    tier: tier-3
+    environment: staging
     cloud_provider: aws
     runtime: kubernetes
-    runbook: ""
+    runbook: runbooks/reporting-api.md
     rollback_required: true
     monitoring_required: true
-    approval_required: true
+    approval_required: false
     dependencies:
-      - auth-service
       - postgres
-      - kms
-    business_impact: Customers cannot be charged and revenue stops immediately
+    business_impact: Internal reports may be delayed
