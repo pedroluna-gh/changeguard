@@ -182,6 +182,10 @@ def _render_score_breakdown(triggered: list) -> None:
         "How the score was reached — each category's contribution to the total "
         "risk points (bar color reflects the most severe finding in the group)."
     )
+    st.caption(
+        "Final risk score is capped at 100. Breakdown values show raw contributing "
+        "points before the cap is applied."
+    )
 
     for source, rules in groups.items():
         group_score = sum(rule.get("score", 0) for rule in rules)
