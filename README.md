@@ -8,7 +8,17 @@ ChangeGuard is built from real-world SRE, cloud operations, ITSM, and change-gov
 It is designed for teams that need more production discipline than a simple checklist, but less overhead than a full enterprise ITSM platform.
 
 ChangeGuard is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
+## Try it in a pull request
 
+```yaml
+- uses: pedroluna-gh/changeguard@v0.1.0
+  with:
+    services: services.yaml
+    change: change.yaml
+    terraform: tfplan.txt
+    k8s: k8s.yaml
+    fail-on: critical
+```
 It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitHub Action** for automated pull-request gates. No database, no login, no external APIs, no AI — everything runs locally.
 
 [![CI](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml/badge.svg)](https://github.com/pedroluna-gh/changeguard/actions/workflows/ci.yml)
