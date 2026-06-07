@@ -1,6 +1,6 @@
 name: CI
 
-# Runs the ChangeGuard test suite on every push and pull request to main,
+# Runs the PreflightOps test suite on every push and pull request to main,
 # across all supported Python versions.
 
 on:
@@ -33,7 +33,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install ChangeGuard with test extras
+      - name: Install PreflightOps with test extras
         run: pip install -e ".[app,test]"
 
       - name: Run tests
