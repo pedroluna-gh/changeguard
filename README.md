@@ -29,14 +29,31 @@ It runs as a **Streamlit web app** for interactive reviews and as a **CLI / GitH
 
 ## The problem
 
-Most production incidents are triggered by **changes** — deployments, config updates, and infrastructure edits. Teams invest heavily in CI/CD, Terraform, Kubernetes, and observability, yet the decision *"is this change safe to ship?"* is still made by gut feel in a rushed review:
+Most production incidents are triggered by changes — deployments, configuration updates, and infrastructure edits.
 
-- Rollback plans are missing, vague, or untested.
-- Critical services lack runbooks or a named owner.
-- Monitoring and post-deploy validation are afterthoughts.
-- Risky Terraform (IAM, destroy/delete, security groups) and Kubernetes (exposed Secrets, missing probes, `replicas: 0`) changes slip through review.
+Teams invest heavily in CI/CD, Terraform, Kubernetes, and observability, yet the decision “is this change safe to ship?” is often still made through gut feel during a rushed review.
 
-PreflightOps makes that judgement **explicit, consistent, and auditable**. It encodes change-governance and production-readiness checks as transparent rules so every change gets the same scrutiny — and so reviewers can focus on the findings that actually matter.
+Common gaps include:
+
+- Rollback plans that are missing, vague, or untested.
+- Critical services without clear runbooks or named owners.
+- Monitoring and post-deploy validation treated as afterthoughts.
+- Risky Terraform changes — IAM, destroy/delete actions, security groups — slipping through review.
+- Risky Kubernetes changes — exposed Secrets, missing probes, `replicas: 0` — reaching production too easily.
+
+PreflightOps makes that judgment explicit, consistent, and auditable.
+
+It encodes change-governance and production-readiness checks as transparent rules so every change receives the same operational scrutiny before it moves forward.
+
+In real production environments, many of the most valuable change conversations happen before the formal CAB meeting — during technical pre-CAB reviews, when engineering, SRE, DevOps, platform, and operations teams are still validating impact, rollback readiness, monitoring coverage, and deployment risk.
+
+PreflightOps is designed for that moment.
+
+It gives technical reviewers a structured way to identify missing evidence, surface risky infrastructure changes, align on service ownership, and generate a change summary that can support ServiceNow, Jira, CAB notes, or internal approval workflows.
+
+The goal is not to replace CAB, change leadership, or human judgment.
+
+The goal is to help teams enter formal change approval with better context, clearer risk signals, and fewer blind spots.
 
 ## What it checks
 
