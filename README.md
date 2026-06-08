@@ -1,8 +1,8 @@
 # PreflightOps
 
-> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk. Use it during technical pre-CAB reviews to align on risk, rollback readiness, monitoring coverage, and implementation evidence before formal approval. 
+> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk. Use it during technical pre-CAB reviews to align on risk, rollback readiness, monitoring coverage, and implementation evidence before formal approval.
 
-PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships. 
+PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
 ## Try it in a pull request
 
