@@ -9,9 +9,7 @@ name: PreflightOps
 # Edit the file paths in `env` below to point at the inputs in your repository.
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
