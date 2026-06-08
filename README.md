@@ -7,7 +7,7 @@ PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platf
 ## Try it in a pull request
 
 ```yaml
-- uses: pedroluna-gh/preflightops@v0.1.0
+- uses: pedroluna-gh/preflightops@v0.1.1
   with:
     services: services.yaml
     change: change.yaml
@@ -169,7 +169,7 @@ Optional inputs are skipped automatically when the file is absent. The workflow 
 You can also call the bundled composite action directly with `uses:`. It sets up Python, installs PreflightOps, runs the assessment, and gates the job on `fail-on`. Add `ticket-output` to also generate a copy/paste-ready change summary — this stays fully offline:
 
 ```yaml
-- uses: pedroluna-gh/preflightops@v0.1.0
+- uses: pedroluna-gh/preflightops@v0.1.1
   with:
     services: services.yaml
     change: change.yaml
@@ -290,7 +290,7 @@ jobs:
       JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pedroluna-gh/preflightops@v0.1.0
+      - uses: pedroluna-gh/preflightops@v0.1.1
         with:
           services: services.yaml
           change: change.yaml
