@@ -116,12 +116,16 @@ It does not yet:
 
 - Parse Terraform JSON plans structurally.
 - Parse Kubernetes manifests into full resource graphs.
-- Connect to GitHub, PagerDuty, Datadog, Grafana, or ServiceNow directly.
+- Connect to GitHub, PagerDuty, Datadog, or Grafana directly.
 - Use historical incident data.
 - Use AI to generate rollback or validation plans.
 - Replace CAB, change advisory, or production readiness approval processes.
 
 Those are good future roadmap items.
+
+PreflightOps can generate ServiceNow/Jira-ready change summaries and can optionally push them to ServiceNow or Jira when explicitly enabled.
+
+It does not yet provide full ITSM workflow orchestration, advanced field mapping, enterprise approval-state modeling, or deep ServiceNow/Jira workflow customization.
 
 ---
 

@@ -1,13 +1,13 @@
 # PreflightOps
 
-> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk. Share the results with your pre-cab or your team before plan the actual implementation. 
+> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk. Use it during technical pre-CAB reviews to align on risk, rollback readiness, monitoring coverage, and implementation evidence before formal approval. 
 
 PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
 ## Try it in a pull request
 
 ```yaml
-- uses: pedroluna-gh/preflightops@v0.1.1
+- uses: pedroluna-gh/preflightops@v0.1.2
   with:
     services: services.yaml
     change: change.yaml
@@ -169,7 +169,7 @@ Optional inputs are skipped automatically when the file is absent. The workflow 
 You can also call the bundled composite action directly with `uses:`. It sets up Python, installs PreflightOps, runs the assessment, and gates the job on `fail-on`. Add `ticket-output` to also generate a copy/paste-ready change summary — this stays fully offline:
 
 ```yaml
-- uses: pedroluna-gh/preflightops@v0.1.1
+- uses: pedroluna-gh/preflightops@v0.1.2
   with:
     services: services.yaml
     change: change.yaml
@@ -290,7 +290,7 @@ jobs:
       JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pedroluna-gh/preflightops@v0.1.1
+      - uses: pedroluna-gh/preflightops@v0.1.2
         with:
           services: services.yaml
           change: change.yaml
