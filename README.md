@@ -1,6 +1,6 @@
 # PreflightOps
 
-> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk.
+> **Preflight checks for risky production changes.** Before production changes take off, check the operational risk. Share the results with your pre-cab or your team before plan the actual implementation. 
 
 PreflightOps is a pre-deployment risk assessment tool for SRE, DevOps, and Platform Engineering teams. It turns a service catalog and a proposed change into a clear **0–100 risk score**, a **risk level** (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`), a plain-English recommendation, and an actionable list of the exact gaps to fix — *before* the change ships.
 
