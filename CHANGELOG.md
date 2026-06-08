@@ -9,7 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet.
 
-## [0.1.0] - 2026-06-07
+## [0.1.2] - 2026-06-08
+
+  Maintenance release focused on repo hygiene, documentation, and consistency of
+  the GitHub Action references. The risk engine (scoring, rules, and scanners) is
+  unchanged from 0.1.0.
+
+  ### Changed
+
+  - All example Action references now point to `pedroluna-gh/preflightops@v0.1.2`
+    (README, `docs/GITHUB_ACTION.md`, and the landing site), removing stale
+    references to earlier versions.
+  - Reworded the README usage guidance around technical pre-CAB reviews: aligning
+    on risk, rollback readiness, monitoring coverage, and implementation evidence
+    before formal approval.
+  - Clarified the ITSM integration scope in `docs/RISK_MODEL.md`: PreflightOps
+    can generate ServiceNow/Jira-ready change summaries and optionally push them
+    when explicitly enabled. It does not yet provide full ITSM workflow
+    orchestration, advanced field mapping, enterprise approval-state modeling, or
+    deep ServiceNow/Jira workflow customization.
+
+  ### Maintenance
+
+  - Bumped the `preflightops` package version to `0.1.2`.
+  - Tightened Python `.gitignore` hygiene (`__pycache__/`, `*.pyc`,
+    `.pytest_cache/`, `*.egg-info/`) and removed generated artifacts that were
+    committed by mistake.
+
+  ## [0.1.0] - 2026-06-07
 
 Initial public release.
 
@@ -38,5 +65,6 @@ Initial public release.
 - **pytest suite** covering the engine, validators, scanners, reports, CLI,
   web app, and the documented example scenarios.
 
-[Unreleased]: https://github.com/pedroluna-gh/preflightops/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/pedroluna-gh/preflightops/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/pedroluna-gh/preflightops/compare/v0.1.1...v0.1.2
 [0.1.0]: https://github.com/pedroluna-gh/preflightops/releases/tag/v0.1.0
